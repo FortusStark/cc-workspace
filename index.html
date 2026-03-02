@@ -649,6 +649,14 @@ async function boot() {
   renderProjs();
   renderProg();
   updateChi();
+  // Show memory status
+  if(S.memory && S.memory.length) {
+    const preview = S.memory.slice(0,2).map(m=>m.text.slice(0,50)).join(' • ');
+    Object.keys(CHANNELS).forEach(ch=>{
+      setTimeout(()=>addMsg(ch,'sys',`Memory: ${S.memory.length} facts loaded — "${preview}"`),250);
+    });
+  }
+
   // Boot msgs
   const lines=['COMMAND CENTER v3.0 — THREE-CHANNEL WORKSPACE',`Model: ${S.model.replace('claude-','')} | Projects: ${S.projects.length}`,'Type /help for commands.'];
   Object.keys(CHANNELS).forEach(ch=>{
