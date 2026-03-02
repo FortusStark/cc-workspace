@@ -598,8 +598,7 @@ async function extractMemory() {
   const msgs=chs[ch].msgs.slice(-20);
   if(msgs.length<2){addMsg(ch,'sys','Not enough conversation to extract memory.');return;}
   addMsg(ch,'sys','Extracting memory...');
-  const conv=msgs.map(m=>`${m.role}: ${String(m.content).slice(0,300)}`).join('
-');
+  const conv=msgs.map(m=>`${m.role}: ${String(m.content).slice(0,300)}`).join('\n');
   const proj=S.activeProj!==null?`Active project: ${S.projects[S.activeProj]?.name}. `:'';
   try {
     const body={model:'claude-haiku-4-5',max_tokens:400,system:'Extract key facts, decisions, and context from this conversation. Return ONLY a JSON array of strings, no markdown, no explanation. Max 8 items. Each item under 100 chars.',
