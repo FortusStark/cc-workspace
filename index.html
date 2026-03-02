@@ -1446,21 +1446,53 @@ async function sendToAPIWithImages(ch, userText, images) {
     type: 'image',
     source: { type: 'base64', media_type: img.mediaType, data: img.base64 }
   }));
-  if (userText) contentArr.push({ type: 'text', text: userText });
-  else contentArr.push({ type: 'text', text: 'What do you see in this image?' });
+  contentArr.push({ type: 'text', text: userText || 'What do you see in this image?' });
 
-  chState[ch].messages.push({ role: 'user', content: contentArr });
+  // Build system prompt
+  let sys = state.systemPrompt || CHANNELS[ch].persona;
+  if (state.activeProject !== null) {
+    const p = state.projects[state.activeProject];
+    sys += ` You are working on: "${p.name}". ${p.desc||''}`;
+  }
+
+  // Build messages - use simple text for history, image content for this message
+  const historyMessages = chState[ch].messages.map(m => ({
+    role: m.role,
+    content: typeof m.content === 'string' ? m.content : (Array.isArray(m.content) ? m.content.filter(b=>b.type==='text').map(b=>b.text).join(' ') : String(m.content))
+  }));
+
+  const body = {
+    model: state.model,
+    max_tokens: 2048,
+    system: sys,
+    messages: [...historyMessages, { role: 'user', content: contentArr }]
+  };
+
+  if (state.searchEnabled) body.tools = [{ type:'web_search_20250305', name:'web_search' }];
 
   try {
-    const reply = await callAPI(ch);
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.error?.message || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    if (data.usage) { chState[ch].tokens = data.usage.input_tokens + data.usage.output_tokens; updateCostDisplay(ch, data.usage); }
+    const reply = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('
+');
     removeTyping(ch);
     addMsg(ch, 'ai', reply);
+    // Store as text in history
+    chState[ch].messages.push({ role: 'user', content: userText || '[image]' });
     chState[ch].messages.push({ role: 'assistant', content: reply });
     setStatus(ch, 'online');
   } catch(e) {
     removeTyping(ch);
     addMsg(ch, 'err', `API Error: ${e.message}`);
-    chState[ch].messages.pop();
     setStatus(ch, 'offline');
     setTimeout(() => setStatus(ch, 'online'), 5000);
   }
