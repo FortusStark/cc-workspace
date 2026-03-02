@@ -378,7 +378,7 @@ body::before {
       <select id="msel" onchange="setModel(this.value)">
         <option value="claude-sonnet-4-5">Sonnet 4.5</option>
         <option value="claude-opus-4-5">Opus 4.5</option>
-        <option value="claude-haiku-4-5">Haiku 4.5</option>
+        <option value="claude-haiku-4-5" selected>Haiku 4.5 ✓ DEFAULT</option>
       </select>
       <button class="cb" id="srch-btn" onclick="toggleSearch()">⌖ Web Search</button>
       <button class="cb" id="pers-btn" onclick="togglePersona()">⚙ Persona</button>
@@ -420,7 +420,7 @@ body::before {
         <input type="file" id="img-file" accept="image/*" multiple style="display:none;" onchange="handleImgFile(event)">
         <button id="send-btn" onclick="doSend()">SEND</button>
       </div>
-      <div class="hint">/help &nbsp;/model &nbsp;/search &nbsp;/persona &nbsp;/summarize &nbsp;/progress &nbsp;/clear &nbsp;/export &nbsp;/tokens &nbsp;/review &nbsp;/debate</div>
+      <div class="hint">/help &nbsp;/model &nbsp;/search &nbsp;/persona &nbsp;/remember &nbsp;/memory &nbsp;/progress &nbsp;/clear &nbsp;/export &nbsp;/debate</div>
     </div>
   </div>
 
@@ -431,6 +431,7 @@ body::before {
     <div id="rtabs">
       <div class="rt active" onclick="switchRTab('files')">Files</div>
       <div class="rt" onclick="switchRTab('links')">Links</div>
+      <div class="rt" onclick="switchRTab('memory')">Memory</div>
       <div class="rt" onclick="switchRTab('progress')">Progress</div>
     </div>
     <div class="tp active" id="tp-files">
@@ -442,6 +443,22 @@ body::before {
       <div id="fprev">// Select a file to preview</div>
     </div>
     <div class="tp" id="tp-links"><div id="links-list"><div class="nodata">No links yet. Add URLs when creating projects.</div></div></div>
+    <div class="tp" id="tp-memory">
+      <div style="padding:8px 10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+        <span style="font-size:10px;color:var(--dim);letter-spacing:1px;">FORTUS MEMORY</span>
+        <div style="display:flex;gap:4px;">
+          <button onclick="extractMemory()" style="background:none;border:1px solid var(--border);color:var(--accent);font-family:inherit;font-size:9px;padding:1px 6px;cursor:pointer;" title="Extract memory from conversation">⟳ EXTRACT</button>
+          <button onclick="clearMemory()" style="background:none;border:1px solid var(--border);color:var(--dim);font-family:inherit;font-size:9px;padding:1px 6px;cursor:pointer;">✕ CLEAR</button>
+        </div>
+      </div>
+      <div id="mem-list" style="flex:1;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:4px;"></div>
+      <div style="padding:6px 10px;border-top:1px solid var(--border);flex-shrink:0;">
+        <div style="display:flex;gap:4px;">
+          <input id="mem-in" placeholder="Add memory..." style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:10px;padding:3px 6px;outline:none;" onkeydown="if(event.key==='Enter')addMemoryManual()">
+          <button onclick="addMemoryManual()" style="background:none;border:1px solid var(--border);color:var(--accent);font-family:inherit;font-size:10px;padding:2px 6px;cursor:pointer;">ADD</button>
+        </div>
+      </div>
+    </div>
     <div class="tp" id="tp-progress"><div id="prog-list"><div class="nodata">No progress reports.<br>Use /progress to generate one.</div></div></div>
   </div>
 </div>
@@ -517,13 +534,14 @@ const costs = {fortus:0, torque:0, tri:0};
 let sessTok = 0;
 let attachedImgs = [];
 let S = {
-  model:'claude-sonnet-4-5', search:false, persona:'', activeCh:'fortus',
+  model:'claude-haiku-4-5', search:false, persona:'', activeCh:'fortus',
   projects:[], activeProj:null, files:[], progress:[], msgCount:0, sidebarCollapsed:false,
+  memory:[], memoryEnabled:true,
 };
 
 // ── STORAGE ──────────────────────────────────────────────
 async function save() {
-  try { await window.storage.set('cc-v3', JSON.stringify({projects:S.projects,activeProj:S.activeProj,persona:S.persona,model:S.model,progress:S.progress,sidebarCollapsed:S.sidebarCollapsed})); } catch(e){}
+  try { await window.storage.set('cc-v3', JSON.stringify({projects:S.projects,activeProj:S.activeProj,persona:S.persona,model:S.model,progress:S.progress,sidebarCollapsed:S.sidebarCollapsed,memory:S.memory,memoryEnabled:S.memoryEnabled})); } catch(e){}
 }
 async function load() {
   try { const r=await window.storage.get('cc-v3'); if(r){const d=JSON.parse(r.value);Object.assign(S,d);} } catch(e){}
@@ -542,6 +560,72 @@ function changeKey() {
   document.getElementById('k-in').value='';
   document.getElementById('kerr').style.display='none';
   document.getElementById('key-ov').style.display='flex';
+}
+
+// ── MEMORY ───────────────────────────────────────────────
+function getMemoryContext() {
+  if(!S.memory.length||!S.memoryEnabled) return '';
+  return '
+
+## PERSISTENT MEMORY (from previous sessions):
+' + S.memory.map(m=>`- ${m.text}`).join('
+');
+}
+
+function renderMemory() {
+  const el=document.getElementById('mem-list');
+  if(!S.memory.length){el.innerHTML='<div class="nodata">No memories yet.<br>Chat with Fortus then hit ⟳ EXTRACT<br>or use /remember to save something.</div>';return;}
+  el.innerHTML=S.memory.map((m,i)=>`
+    <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);padding:5px 8px;font-size:11px;display:flex;gap:6px;align-items:flex-start;">
+      <span style="color:var(--dim);font-size:9px;flex-shrink:0;margin-top:2px;">${new Date(m.ts).toLocaleDateString()}</span>
+      <span style="color:var(--text);flex:1;line-height:1.5;">${esc(m.text)}</span>
+      <button onclick="rmMemory(${i})" style="background:none;border:none;color:var(--faint);cursor:pointer;font-size:11px;flex-shrink:0;">✕</button>
+    </div>`).join('');
+}
+
+function addMemoryManual() {
+  const inp=document.getElementById('mem-in');
+  const t=inp.value.trim();
+  if(!t)return;
+  S.memory.unshift({text:t,ts:Date.now(),source:'manual'});
+  if(S.memory.length>50)S.memory=S.memory.slice(0,50);
+  inp.value='';
+  renderMemory();save();
+  addMsg(S.activeCh,'sys','Memory saved: '+t.slice(0,40));
+}
+
+function rmMemory(i){S.memory.splice(i,1);renderMemory();save();}
+function clearMemory(){S.memory=[];renderMemory();save();addMsg(S.activeCh,'sys','Memory cleared.');}
+
+async function extractMemory() {
+  const ch=S.activeCh;
+  const msgs=chs[ch].msgs.slice(-20);
+  if(msgs.length<2){addMsg(ch,'sys','Not enough conversation to extract memory.');return;}
+  addMsg(ch,'sys','Extracting memory...');
+  const conv=msgs.map(m=>`${m.role}: ${String(m.content).slice(0,300)}`).join('
+');
+  const proj=S.activeProj!==null?`Active project: ${S.projects[S.activeProj]?.name}. `:'';
+  try {
+    const body={model:'claude-haiku-4-5',max_tokens:400,system:'Extract key facts, decisions, and context from this conversation. Return ONLY a JSON array of strings, no markdown, no explanation. Max 8 items. Each item under 100 chars.',
+      messages:[{role:'user',content:`${proj}Extract memory from:
+
+${conv}`}]};
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data=await res.json();
+    const raw=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+    const items=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    const newMems=items.map(t=>({text:t,ts:Date.now(),source:'auto'}));
+    S.memory=[...newMems,...S.memory].slice(0,50);
+    renderMemory();switchRTab('memory');save();
+    addMsg(ch,'sys',`Memory updated: ${newMems.length} facts saved.`);
+  } catch(e){addMsg(ch,'err','Memory extract failed: '+e.message);}
+}
+
+async function autoExtractIfNeeded() {
+  const ch=S.activeCh;
+  if(chs[ch].msgs.length>0&&chs[ch].msgs.length%15===0&&S.memoryEnabled) {
+    await extractMemory();
+  }
 }
 
 // ── BOOT ─────────────────────────────────────────────────
@@ -820,9 +904,10 @@ function toggleMob(id){
   if(!open)el.classList.add('mob-open');
 }
 function switchRTab(tab){
-  document.querySelectorAll('.rt').forEach((t,i)=>t.classList.toggle('active',['files','links','progress'][i]===tab));
+  document.querySelectorAll('.rt').forEach((t,i)=>t.classList.toggle('active',['files','links','memory','progress'][i]===tab));
   document.querySelectorAll('.tp').forEach(p=>p.classList.toggle('active',p.id===`tp-${tab}`));
   if(tab==='links')renderLinks();
+  if(tab==='memory')renderMemory();
 }
 function renderLinks(){
   const el=document.getElementById('links-list');
@@ -890,6 +975,7 @@ async function sendToAPI(ch, text, imgs=[]) {
     chs[ch].msgs.push({role:'user',content:typeof content==='string'?content:'[image message]'});
     chs[ch].msgs.push({role:'assistant',content:reply});
     setStatus(ch,'online');
+    autoExtractIfNeeded();
   } catch(e){
     remTyping(ch);
     addMsg(ch,'err',`API Error: ${e.message}`);
@@ -943,6 +1029,9 @@ const handlers={
   '/clearall':()=>{Object.keys(chs).forEach(ch=>{chs[ch].msgs=[];chs[ch].tokens=0;document.getElementById(`msgs-${ch}`).innerHTML='';});addMsg(S.activeCh,'sys','All channels cleared.');},
   '/export':()=>exportSess(),
   '/tokens':()=>{const ch=S.activeCh;showModal('TOKENS',`Channel: ${CHANNELS[ch].name}\nTokens: ${chs[ch].tokens.toLocaleString()}\nUsage: ${Math.round(chs[ch].tokens/MAX_CTX*100)}%\n\nFortus: ${chs.fortus.tokens}\nTorque: ${chs.torque.tokens}\nTri: ${chs.tri.tokens}`);},
+  '/remember':(a)=>{const t=a.join(' ');if(!t){addMsg(S.activeCh,'sys','Usage: /remember <fact>');return;}S.memory.unshift({text:t,ts:Date.now(),source:'manual'});S.memory=S.memory.slice(0,50);renderMemory();save();addMsg(S.activeCh,'sys','Remembered: '+t);},
+  '/forget':()=>clearMemory(),
+  '/memory':()=>{switchRTab('memory');renderMemory();},
   '/status':()=>showModal('STATUS',Object.entries(CHANNELS).map(([k,v])=>`${v.name.padEnd(14)} — ${chs[k].status} | tokens: ${chs[k].tokens}`).join('\n')),
   '/projects':()=>{if(!S.projects.length){addMsg(S.activeCh,'sys','No projects.');return;}showModal('PROJECTS',S.projects.map((p,i)=>`[${i}] ${p.name} — ${p.desc||'no desc'}`).join('\n'));},
   '/summarize':()=>{if(!S.files.length){addMsg(S.activeCh,'sys','No files loaded.');return;}const info=S.files.map(f=>`**${f.name}**:\n${f.content.slice(0,2000)}`).join('\n\n');sendToAPI(S.activeCh,`Summarize these files:\n\n${info}`);},
