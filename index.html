@@ -321,6 +321,7 @@ body::before {
     <div class="sp"><label>PROJ</label><span class="v" id="pdisplay">none</span></div>
   </div>
   <a href="https://all-pro-pg-crm-production.up.railway.app" target="_blank" class="tbtn" style="text-decoration:none;">⬡ ACE CRM</a>
+  <button class="tbtn" id="bolt-btn" onclick="toggleBoltPanel()" title="BOLT Mac Executor">⚡ BOLT <span id="bolt-dot" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#444;margin-left:3px;vertical-align:middle;"></span></button>
   <button class="tbtn" onclick="changeKey()">⚿ KEY</button>
 </div>
 
@@ -471,6 +472,42 @@ body::before {
   <button onclick="changeKey()">⚿ KEY</button>
 </div>
 
+<!-- BOLT PANEL -->
+<div id="bolt-panel" style="display:none;position:fixed;bottom:60px;right:12px;width:320px;background:var(--bg2);border:1px solid var(--border);z-index:2000;font-family:'Share Tech Mono',monospace;font-size:11px;">
+  <div style="padding:8px 12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+    <span style="color:var(--white);letter-spacing:2px;">⚡ BOLT</span>
+    <div style="display:flex;gap:6px;align-items:center;">
+      <span id="bolt-status-txt" style="color:var(--dim);font-size:10px;">disconnected</span>
+      <button onclick="checkBolt()" style="background:none;border:1px solid var(--border);color:var(--accent);font-family:inherit;font-size:9px;padding:1px 6px;cursor:pointer;">PING</button>
+      <button onclick="toggleBoltPanel()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;">✕</button>
+    </div>
+  </div>
+  <div style="padding:8px 12px;border-bottom:1px solid var(--border);">
+    <div style="color:var(--dim);font-size:9px;margin-bottom:4px;">QUICK ACTIONS</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px;">
+      <button class="bqb" onclick="boltCmd('screenshot')">📸 Screenshot</button>
+      <button class="bqb" onclick="boltPrompt('open','URL:','url')">🌐 Open URL</button>
+      <button class="bqb" onclick="boltPrompt('notify','Message:','message')">🔔 Notify</button>
+      <button class="bqb" onclick="boltPrompt('run','Command:','command')">⌨ Run CMD</button>
+      <button class="bqb" onclick="boltPrompt('type','Text to type:','text')">✏ Type</button>
+      <button class="bqb" onclick="boltPrompt('clipboard','Copy text:','text')">📋 Clipboard</button>
+    </div>
+  </div>
+  <div style="padding:8px 12px;border-bottom:1px solid var(--border);">
+    <div style="color:var(--dim);font-size:9px;margin-bottom:4px;">LAST RESULT</div>
+    <div id="bolt-result" style="color:var(--text);font-size:10px;min-height:30px;max-height:80px;overflow-y:auto;line-height:1.5;">—</div>
+  </div>
+  <div style="padding:6px 12px;">
+    <div style="color:var(--dim);font-size:9px;margin-bottom:3px;">SETUP: Run on your Mac:</div>
+    <div style="background:var(--bg3);padding:4px 6px;font-size:10px;color:var(--accent);user-select:all;">python3 ~/torque-workspace/bots/bolt_server.py</div>
+  </div>
+</div>
+
+<style>
+.bqb { background:none; border:1px solid var(--border); color:var(--dim); font-family:'Share Tech Mono',monospace; font-size:10px; padding:2px 6px; cursor:pointer; transition:all 0.15s; }
+.bqb:hover { border-color:var(--border-hi); color:var(--white); }
+</style>
+
 <!-- MODAL -->
 <div id="modal" onclick="closeModal()">
   <div id="mbox" onclick="event.stopPropagation()">
@@ -497,8 +534,8 @@ body::before {
 // ── CONSTANTS ───────────────────────────────────────────
 const MAX_CTX = 200000;
 const CHANNELS = {
-  fortus: { name:'FORTUS',  persona:'You are Fortus, a sharp and direct AI assistant. Technical, concise. Help with code, architecture, strategy. Sign responses as "— Fortus".' },
-  torque: { name:'TORQUE',  persona:'You are Torque, a creative and analytical AI assistant. Think laterally, offer fresh perspectives. Sign responses as "— Torque".' },
+  fortus: { name:'FORTUS',  persona:'You are Fortus, a sharp and direct AI assistant. Technical, concise. Help with code, architecture, strategy. Sign responses as "- Fortus".' },
+  torque: { name:'TORQUE',  persona:'You are Torque, a creative and analytical AI assistant. Think laterally, offer fresh perspectives. Sign responses as "- Torque".' },
   tri:    { name:'TRI-CHANNEL', persona:'Respond as both Fortus and Torque. Label each clearly. Fortus: direct and technical. Torque: creative and lateral. They should reference each other.' },
 };
 const COSTS = {
@@ -520,6 +557,7 @@ const SLASH = [
   {c:'/review',   d:'Review all loaded files'},
   {c:'/projects', d:'List projects'},
   {c:'/debate',   d:'/debate <topic> — Fortus vs Torque'},
+  {c:'/bolt',     d:'/bolt <action> — execute on Mac via BOLT'},
   {c:'/file',     d:'/file <name> — ask AI about file'},
   {c:'/status',   d:'Show bot statuses'},
 ];
@@ -537,6 +575,8 @@ let S = {
   model:'claude-haiku-4-5', search:false, persona:'', activeCh:'fortus',
   projects:[], activeProj:null, files:[], progress:[], msgCount:0, sidebarCollapsed:false,
   memory:[], memoryEnabled:true,
+  boltKey:'bolt-local-key', boltUrl:'http://localhost:7777',
+  boltConnected:false,
 };
 
 // ── STORAGE ──────────────────────────────────────────────
@@ -560,6 +600,91 @@ function changeKey() {
   document.getElementById('k-in').value='';
   document.getElementById('kerr').style.display='none';
   document.getElementById('key-ov').style.display='flex';
+}
+
+// ── BOLT ─────────────────────────────────────────────────
+function toggleBoltPanel() {
+  const p=document.getElementById('bolt-panel');
+  p.style.display=p.style.display==='none'?'block':'none';
+  if(p.style.display==='block') checkBolt();
+}
+
+async function checkBolt() {
+  try {
+    const res = await fetch(`${S.boltUrl}/status`, {method:'GET'});
+    const data = await res.json();
+    S.boltConnected = data.status === 'online';
+    document.getElementById('bolt-dot').style.background = S.boltConnected ? 'var(--green)' : 'var(--red)';
+    document.getElementById('bolt-status-txt').textContent = S.boltConnected ? `online | ${data.screen||''}` : 'offline';
+    return S.boltConnected;
+  } catch(e) {
+    S.boltConnected = false;
+    document.getElementById('bolt-dot').style.background = '#444';
+    document.getElementById('bolt-status-txt').textContent = 'disconnected';
+    return false;
+  }
+}
+
+async function boltExec(action, params={}) {
+  try {
+    const res = await fetch(`${S.boltUrl}/status`, {method:'GET'});
+    // quick connectivity check
+  } catch(e) {
+    return {success:false, error:'BOLT not running. Start it on your Mac.'};
+  }
+  try {
+    const res = await fetch(`${S.boltUrl}/`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Bolt-Key':S.boltKey},
+      body: JSON.stringify({action, ...params})
+    });
+    return await res.json();
+  } catch(e) {
+    return {success:false, error:e.message};
+  }
+}
+
+async function boltCmd(action, params={}) {
+  const result = document.getElementById('bolt-result');
+  result.textContent = `Running: ${action}...`;
+  result.style.color = 'var(--amber)';
+  const ch = S.activeCh;
+  addMsg(ch,'sys',`BOLT: ${action}${Object.keys(params).length?' → '+JSON.stringify(params):''}`);
+  
+  try {
+    const res = await fetch(`${S.boltUrl}/${action==='screenshot'?'screenshot':''}`, 
+      action==='screenshot' 
+        ? {method:'GET', headers:{'X-Bolt-Key':S.boltKey}}
+        : {method:'POST', headers:{'Content-Type':'application/json','X-Bolt-Key':S.boltKey}, body:JSON.stringify({action,...params})}
+    );
+    const data = await res.json();
+    
+    if(action==='screenshot' && data.image) {
+      result.innerHTML = `<img src="data:image/jpeg;base64,${data.image}" style="width:100%;border:1px solid var(--border);">`;
+      result.style.color = 'var(--text)';
+      // Send screenshot to active AI channel
+      addMsg(ch,'sys','Screenshot captured — sending to AI...');
+      await sendToAPI(ch, 'Here is a screenshot of my Mac screen. Describe what you see and what actions might be needed.', [{b64:data.image,mt:'image/jpeg',prev:`data:image/jpeg;base64,${data.image}`,name:'screenshot.jpg'}]);
+    } else if(data.success) {
+      const msg = data.message || data.output || 'Done';
+      result.textContent = msg;
+      result.style.color = 'var(--green)';
+      addMsg(ch,'sys',`BOLT ✓ ${msg.slice(0,80)}`);
+    } else {
+      result.textContent = data.error || 'Failed';
+      result.style.color = 'var(--red)';
+      addMsg(ch,'err',`BOLT ✗ ${data.error||'Unknown error'}`);
+    }
+  } catch(e) {
+    result.textContent = 'BOLT offline — start bolt_server.py on your Mac';
+    result.style.color = 'var(--red)';
+    addMsg(ch,'err','BOLT not reachable. Run: python3 ~/torque-workspace/bots/bolt_server.py');
+  }
+}
+
+function boltPrompt(action, label, key) {
+  const val = prompt(label);
+  if(val) boltCmd(action, {[key]: val});
 }
 
 // ── MEMORY ───────────────────────────────────────────────
@@ -598,8 +723,7 @@ async function extractMemory() {
   const msgs=chs[ch].msgs.slice(-20);
   if(msgs.length<2){addMsg(ch,'sys','Not enough conversation to extract memory.');return;}
   addMsg(ch,'sys','Extracting memory...');
-  const conv=msgs.map(m=>`${m.role}: ${String(m.content).slice(0,300)}`).join('
-');
+  const conv=msgs.map(m=>`${m.role}: ${String(m.content).slice(0,300)}`).join('\n');
   const proj=S.activeProj!==null?`Active project: ${S.projects[S.activeProj]?.name}. `:'';
   try {
     const body={model:'claude-haiku-4-5',max_tokens:400,system:'Extract key facts, decisions, and context from this conversation. Return ONLY a JSON array of strings, no markdown, no explanation. Max 8 items. Each item under 100 chars.',
@@ -1033,6 +1157,17 @@ const handlers={
   '/clearall':()=>{Object.keys(chs).forEach(ch=>{chs[ch].msgs=[];chs[ch].tokens=0;document.getElementById(`msgs-${ch}`).innerHTML='';});addMsg(S.activeCh,'sys','All channels cleared.');},
   '/export':()=>exportSess(),
   '/tokens':()=>{const ch=S.activeCh;showModal('TOKENS',`Channel: ${CHANNELS[ch].name}\nTokens: ${chs[ch].tokens.toLocaleString()}\nUsage: ${Math.round(chs[ch].tokens/MAX_CTX*100)}%\n\nFortus: ${chs.fortus.tokens}\nTorque: ${chs.torque.tokens}\nTri: ${chs.tri.tokens}`);},
+  '/bolt':(a)=>{
+    const action=a[0];
+    if(!action){addMsg(S.activeCh,'sys','Usage: /bolt screenshot|open|type|click|key|run|notify|clipboard\nExample: /bolt open https://...');return;}
+    const params={};
+    if(a[1]) {
+      const key={open:'url',type:'text',click:'x',key:'combo',run:'command',notify:'message',clipboard:'text'}[action]||'value';
+      if(action==='click'&&a[2]){params.x=parseInt(a[1]);params.y=parseInt(a[2]);}
+      else params[key]=a.slice(1).join(' ');
+    }
+    boltCmd(action,params);
+  },
   '/remember':(a)=>{const t=a.join(' ');if(!t){addMsg(S.activeCh,'sys','Usage: /remember <fact>');return;}S.memory.unshift({text:t,ts:Date.now(),source:'manual'});S.memory=S.memory.slice(0,50);renderMemory();save();addMsg(S.activeCh,'sys','Remembered: '+t);},
   '/forget':()=>clearMemory(),
   '/memory':()=>{switchRTab('memory');renderMemory();},
