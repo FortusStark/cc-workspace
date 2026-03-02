@@ -25,7 +25,7 @@
 
   /* channel colors - subtle tints */
   --fortus-c: #a0c4ff;
-  --torque-c:  #ffd6a5;
+  --toque-c:  #ffd6a5;
   --tri-c:    #caffbf;
 }
 
@@ -376,7 +376,7 @@ body::after {
 
 /* channel-specific AI name colors */
 .ch-fortus .msg.ai .who { color: var(--fortus-c); }
-.ch-torque  .msg.ai .who { color: var(--torque-c);  }
+.ch-toque  .msg.ai .who { color: var(--toque-c);  }
 .ch-tri    .msg.ai .who { color: var(--tri-c);     }
 
 .msg-body {
@@ -393,7 +393,7 @@ body::after {
 .msg.err   .msg-body { border-color:rgba(255,60,60,0.35); color:var(--red); font-size:11px; }
 
 .ch-fortus .msg.ai .msg-body { border-color:rgba(160,196,255,0.25); }
-.ch-torque  .msg.ai .msg-body { border-color:rgba(255,214,165,0.25); }
+.ch-toque  .msg.ai .msg-body { border-color:rgba(255,214,165,0.25); }
 .ch-tri    .msg.ai .msg-body { border-color:rgba(202,255,191,0.25); }
 
 /* typing */
@@ -591,7 +591,7 @@ body::after {
 
 <!-- TOPBAR -->
 <div id="topbar">
-  <div class="logo">COMMAND<span> </span>CENTER <span style="font-size:12px;letter-spacing:1px">// WORKSPACE</span> <span class="blink" style="color:#555">_</span></div>
+  <div class="logo">CLAUDE<span>.</span>SYS <span style="font-size:12px;letter-spacing:1px">// WORKSPACE</span> <span class="blink" style="color:#555">_</span></div>
   <div class="top-stats">
     <div class="stat-pill">
       <label>MODEL</label>
@@ -634,9 +634,9 @@ body::after {
           <span class="bot-status-txt" id="txt-fortus">online</span>
         </div>
         <div class="bot-row">
-          <span class="status-light online" id="light-torque"></span>
-          <span class="bot-name">TORQUE</span>
-          <span class="bot-status-txt" id="txt-torque">online</span>
+          <span class="status-light online" id="light-toque"></span>
+          <span class="bot-name">TOQUE</span>
+          <span class="bot-status-txt" id="txt-toque">online</span>
         </div>
         <div class="bot-row">
           <span class="status-light online" id="light-tri"></span>
@@ -678,19 +678,19 @@ body::after {
         </div>
         <span class="unread" id="unread-fortus">0</span>
       </div>
-      <div class="ch-tab" id="tab-torque" onclick="switchChannel('torque')">
-        <span class="status-light online" id="tabl-torque"></span>
+      <div class="ch-tab" id="tab-toque" onclick="switchChannel('toque')">
+        <span class="status-light online" id="tabl-toque"></span>
         <div class="ch-label">
-          <span class="ch-name">TORQUE</span>
-          <span class="ch-sub">You + Torque</span>
+          <span class="ch-name">TOQUE</span>
+          <span class="ch-sub">You + Toque</span>
         </div>
-        <span class="unread" id="unread-torque">0</span>
+        <span class="unread" id="unread-toque">0</span>
       </div>
       <div class="ch-tab" id="tab-tri" onclick="switchChannel('tri')">
         <span class="status-light online" id="tabl-tri"></span>
         <div class="ch-label">
           <span class="ch-name">TRI-CHANNEL</span>
-          <span class="ch-sub">You + Fortus + Torque</span>
+          <span class="ch-sub">You + Fortus + Toque</span>
         </div>
         <span class="unread" id="unread-tri">0</span>
       </div>
@@ -699,9 +699,9 @@ body::after {
     <!-- Controls -->
     <div id="chat-ctrlbar">
       <select id="model-select" onchange="setModel(this.value)">
-        <option value="claude-opus-4-5">Opus 4.5</option>
-        <option value="claude-sonnet-4-5" selected>Sonnet 4.5</option>
-        <option value="claude-haiku-4-5">Haiku 4.5</option>
+        <option value="claude-opus-4-5-20251101">Opus 4.5</option>
+        <option value="claude-sonnet-4-5-20251022" selected>Sonnet 4.5</option>
+        <option value="claude-haiku-4-5-20251001">Haiku 4.5</option>
       </select>
       <button class="ctrl-btn" id="search-toggle" onclick="toggleSearch()">⌖ Web Search</button>
       <button class="ctrl-btn" id="persona-toggle" onclick="togglePersona()">⚙ Persona</button>
@@ -714,8 +714,8 @@ body::after {
     <div class="chat-channel ch-fortus active" id="ch-fortus">
       <div class="chat-window" id="win-fortus"></div>
     </div>
-    <div class="chat-channel ch-torque" id="ch-torque">
-      <div class="chat-window" id="win-torque"></div>
+    <div class="chat-channel ch-toque" id="ch-toque">
+      <div class="chat-window" id="win-toque"></div>
     </div>
     <div class="chat-channel ch-tri" id="ch-tri">
       <div class="chat-window" id="win-tri"></div>
@@ -792,14 +792,14 @@ const CHANNELS = {
     persona: 'You are Fortus, a sharp and direct AI assistant. You are technical, concise, and don\'t waste words. You help with code, architecture, and strategy. Sign responses as "— Fortus".',
     color: '#a0c4ff',
   },
-  torque:  {
-    name: 'TORQUE',
-    persona: 'You are Torque, a creative and analytical AI assistant. You think laterally, offer fresh perspectives, and are great at problem-solving and brainstorming. Sign responses as "— Torque".',
+  toque:  {
+    name: 'TOQUE',
+    persona: 'You are Toque, a creative and analytical AI assistant. You think laterally, offer fresh perspectives, and are great at problem-solving and brainstorming. Sign responses as "— Toque".',
     color: '#ffd6a5',
   },
   tri: {
     name: 'TRI-CHANNEL',
-    persona: 'This is a group session with both Fortus and Torque. Respond as both: first give Fortus\'s take (direct, technical), then Torque\'s take (creative, lateral). Label each clearly.',
+    persona: 'This is a group session with both Fortus and Toque. Respond as both: first give Fortus\'s take (direct, technical), then Toque\'s take (creative, lateral). Label each clearly.',
     color: '#caffbf',
   },
 };
@@ -809,12 +809,12 @@ const MAX_CTX = 200000;
 // Per-channel state
 const chState = {
   fortus: { messages: [], tokens: 0, status: 'online' },
-  torque:  { messages: [], tokens: 0, status: 'online' },
+  toque:  { messages: [], tokens: 0, status: 'online' },
   tri:    { messages: [], tokens: 0, status: 'online' },
 };
 
 let state = {
-  model: 'claude-sonnet-4-5',
+  model: 'claude-sonnet-4-5-20251022',
   searchEnabled: false,
   systemPrompt: '',          // overrides channel persona if set
   activeChannel: 'fortus',
@@ -827,9 +827,9 @@ let state = {
 };
 
 const MODELS = {
-  'claude-opus-4-5':  'opus-4.5',
-  'claude-sonnet-4-5': 'sonnet-4.5',
-  'claude-haiku-4-5': 'haiku-4.5',
+  'claude-opus-4-5-20251101':  'opus-4.5',
+  'claude-sonnet-4-5-20251022': 'sonnet-4.5',
+  'claude-haiku-4-5-20251001': 'haiku-4.5',
 };
 
 const SLASH_CMDS = [
@@ -844,7 +844,6 @@ const SLASH_CMDS = [
   {cmd:'/summarize', desc:'Summarize loaded files'},
   {cmd:'/progress',  desc:'Generate progress report'},
   {cmd:'/review',    desc:'Review all loaded files'},
-  {cmd:'/debate',   desc:'/debate <topic> — Fortus vs Torque back and forth'},
   {cmd:'/projects',  desc:'List projects'},
   {cmd:'/file',      desc:'/file <name> — ask AI about file'},
   {cmd:'/status',    desc:'Show all bot statuses'},
@@ -894,7 +893,7 @@ async function boot() {
     `Model: ${MODELS[state.model]} | Projects: ${state.projects.length}`,
     `Type /help for commands.`,
   ];
-  ['fortus','torque','tri'].forEach(ch => {
+  ['fortus','toque','tri'].forEach(ch => {
     lines.forEach((l,i) => setTimeout(() => addMsg(ch,'sys',l), i*55));
     setTimeout(() => addMsg(ch,'sys',`${CHANNELS[ch].name} is online and ready.`), lines.length*55+80);
   });
@@ -932,7 +931,7 @@ function switchChannel(ch) {
 
 function updateInputIndicator() {
   const ch = state.activeChannel;
-  const colors = { fortus:'#a0c4ff', torque:'#ffd6a5', tri:'#caffbf' };
+  const colors = { fortus:'#a0c4ff', toque:'#ffd6a5', tri:'#caffbf' };
   document.getElementById('input-ch-dot').style.background = colors[ch] || '#ccc';
   document.getElementById('input-ch-label').textContent = CHANNELS[ch].name + ' CHANNEL';
 }
@@ -1143,7 +1142,7 @@ function togglePersona() {
 function applyPersona() {
   state.systemPrompt = document.getElementById('system-prompt-input').value.trim();
   // Reset all channel histories
-  ['fortus','torque','tri'].forEach(ch => chState[ch].messages = []);
+  ['fortus','toque','tri'].forEach(ch => chState[ch].messages = []);
   togglePersona();
   addMsg(state.activeChannel,'sys','Custom persona applied. All channels reset.');
   saveState();
@@ -1224,64 +1223,6 @@ async function sendToAPI(ch, userText) {
   updateTokenDisplay(ch);
 }
 
-async function runDebate(topic) {
-  const ch = 'tri';
-  switchChannel('tri');
-  addMsg(ch, 'sys', 'Starting debate: ' + topic);
-
-  // Round 1: Fortus
-  setStatus('fortus', 'working');
-  addTyping(ch);
-  const fortusSystem = CHANNELS.fortus.persona + ' You are in a group debate. Respond to the topic directly and concisely. Another AI called Torque will respond after you.';
-  chState[ch].messages.push({ role: 'user', content: topic });
-  const body1 = { model: state.model, max_tokens: 1024, messages: chState[ch].messages, system: fortusSystem };
-  if (state.searchEnabled) body1.tools = [{ type:'web_search_20250305', name:'web_search' }];
-  try {
-    const r1 = await fetch('https://api.anthropic.com/v1/messages', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body1) });
-    const d1 = await r1.json();
-    const reply1 = (d1.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
-    removeTyping(ch);
-    const m1 = addMsg(ch, 'ai', reply1);
-    if (m1) m1.querySelector('.who span:last-child').textContent = 'FORTUS';
-    chState[ch].messages.push({ role: 'assistant', content: reply1 });
-    setStatus('fortus', 'online');
-  } catch(e) { removeTyping(ch); addMsg(ch,'err','Fortus error: '+e.message); setStatus('fortus','offline'); return; }
-
-  // Round 2: Torque sees Fortus's reply
-  setStatus('torque', 'working');
-  addTyping(ch);
-  const torqueSystem = CHANNELS.torque.persona + ' You are in a group debate. Fortus just responded. React to what Fortus said and add your own perspective. Be direct and reference Fortus by name.';
-  const body2 = { model: state.model, max_tokens: 1024, messages: chState[ch].messages, system: torqueSystem };
-  if (state.searchEnabled) body2.tools = [{ type:'web_search_20250305', name:'web_search' }];
-  try {
-    const r2 = await fetch('https://api.anthropic.com/v1/messages', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body2) });
-    const d2 = await r2.json();
-    const reply2 = (d2.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
-    removeTyping(ch);
-    const m2 = addMsg(ch, 'ai', reply2);
-    if (m2) m2.querySelector('.who span:last-child').textContent = 'TORQUE';
-    chState[ch].messages.push({ role: 'assistant', content: reply2 });
-    setStatus('torque', 'online');
-  } catch(e) { removeTyping(ch); addMsg(ch,'err','Torque error: '+e.message); setStatus('torque','offline'); return; }
-
-  // Round 3: Fortus responds to Torque
-  setStatus('fortus', 'working');
-  addTyping(ch);
-  const body3 = { model: state.model, max_tokens: 1024, messages: chState[ch].messages, system: fortusSystem + ' Torque just responded to you. Give a final sharp reply.' };
-  if (state.searchEnabled) body3.tools = [{ type:'web_search_20250305', name:'web_search' }];
-  try {
-    const r3 = await fetch('https://api.anthropic.com/v1/messages', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body3) });
-    const d3 = await r3.json();
-    const reply3 = (d3.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
-    removeTyping(ch);
-    const m3 = addMsg(ch, 'ai', reply3);
-    if (m3) m3.querySelector('.who span:last-child').textContent = 'FORTUS';
-    chState[ch].messages.push({ role: 'assistant', content: reply3 });
-    setStatus('fortus', 'online');
-    addMsg(ch, 'sys', 'Debate complete. Both AIs have responded.');
-  } catch(e) { removeTyping(ch); addMsg(ch,'err','Fortus error: '+e.message); setStatus('fortus','offline'); }
-}
-
 async function callAPI(ch, overridePrompt) {
   const messages = overridePrompt
     ? [...chState[ch].messages, {role:'user',content:overridePrompt}]
@@ -1298,12 +1239,9 @@ async function callAPI(ch, overridePrompt) {
     body.system = state.systemPrompt;
   } else {
     let sys = CHANNELS[ch].persona;
-    if (ch === 'tri') {
-      sys = CHANNELS.fortus.persona + ' ' + CHANNELS.torque.persona + ' Respond as both Fortus then Torque, clearly labeling each response. Fortus is technical and direct. Torque is creative and lateral. They should reference each other.';
-    }
     if (state.activeProject !== null) {
       const p = state.projects[state.activeProject];
-      sys += ' You are working on the project: "' + p.name + '". ' + (p.desc ? 'Goal: '+p.desc : '');
+      sys += ` You are working on the project: "${p.name}". ${p.desc ? 'Goal: '+p.desc : ''}`;
     }
     body.system = sys;
   }
@@ -1333,7 +1271,7 @@ async function callAPI(ch, overridePrompt) {
 const slashHandlers = {
   '/help': () => showModal('COMMANDS', SLASH_CMDS.map(c=>`${c.cmd.padEnd(14)} — ${c.desc}`).join('\n')),
   '/model': (args) => {
-    const map = {sonnet:'claude-sonnet-4-5',opus:'claude-opus-4-5',haiku:'claude-haiku-4-5'};
+    const map = {sonnet:'claude-sonnet-4-5-20251022',opus:'claude-opus-4-5-20251101',haiku:'claude-haiku-4-5-20251001'};
     const k = args[0]?.toLowerCase();
     if (map[k]) { setModel(map[k]); document.getElementById('model-select').value=map[k]; }
     else addMsg(state.activeChannel,'sys','Usage: /model sonnet|opus|haiku');
@@ -1341,12 +1279,12 @@ const slashHandlers = {
   '/search':    ()=>toggleSearch(),
   '/persona':   ()=>togglePersona(),
   '/clear':     ()=>clearChat(),
-  '/clearall':  ()=>{['fortus','torque','tri'].forEach(ch=>{chState[ch].messages=[];chState[ch].tokens=0;document.getElementById(`win-${ch}`).innerHTML='';});addMsg(state.activeChannel,'sys','All channels cleared.');},
+  '/clearall':  ()=>{['fortus','toque','tri'].forEach(ch=>{chState[ch].messages=[];chState[ch].tokens=0;document.getElementById(`win-${ch}`).innerHTML='';});addMsg(state.activeChannel,'sys','All channels cleared.');},
   '/export':    ()=>exportSession(),
   '/tokens': ()=>{
     const ch=state.activeChannel;
     const t=chState[ch].tokens;
-    showModal('TOKEN USAGE',`Channel  : ${CHANNELS[ch].name}\nTokens   : ${t.toLocaleString()}\nMax ctx  : ${MAX_CTX.toLocaleString()}\nUsage    : ${Math.round(t/MAX_CTX*100)}%\n\nFortus   : ${chState.fortus.tokens.toLocaleString()}\nTorque    : ${chState.torque.tokens.toLocaleString()}\nTri      : ${chState.tri.tokens.toLocaleString()}`);
+    showModal('TOKEN USAGE',`Channel  : ${CHANNELS[ch].name}\nTokens   : ${t.toLocaleString()}\nMax ctx  : ${MAX_CTX.toLocaleString()}\nUsage    : ${Math.round(t/MAX_CTX*100)}%\n\nFortus   : ${chState.fortus.tokens.toLocaleString()}\nToque    : ${chState.toque.tokens.toLocaleString()}\nTri      : ${chState.tri.tokens.toLocaleString()}`);
   },
   '/status': ()=>{
     const lines = Object.entries(CHANNELS).map(([k,v])=>`${v.name.padEnd(14)} — ${chState[k].status.toUpperCase()} | tokens: ${chState[k].tokens}`);
@@ -1379,11 +1317,6 @@ const slashHandlers = {
       saveState();
       addMsg(ch,'sys',`Progress: ${data.pct}% complete`);
     } catch(e){ addMsg(ch,'err','Failed to parse progress. Try again.'); }
-  },
-  '/debate': (args) => {
-    const topic = args.join(' ');
-    if (!topic) { addMsg('tri','sys','Usage: /debate <topic>'); return; }
-    runDebate(topic);
   },
   '/review': ()=>{
     if (!state.files.length){addMsg(state.activeChannel,'sys','No files loaded.');return;}
@@ -1477,39 +1410,6 @@ makeResizable(document.getElementById('rh-left'),document.getElementById('sideba
 makeResizable(document.getElementById('rh-right'),document.getElementById('right-panel'),'right');
 
 boot();
-</script>
-
-<div id="key-overlay" style="display:flex;position:fixed;inset:0;background:rgba(0,0,0,0.97);z-index:9999;align-items:center;justify-content:center;">
-  <div style="background:#111;border:1px solid #333;padding:36px;width:420px;font-family:'Share Tech Mono',monospace;">
-    <div style="font-family:'VT323',monospace;font-size:30px;color:#fff;margin-bottom:4px;letter-spacing:3px;">COMMAND CENTER</div>
-    <div style="font-size:10px;color:#555;letter-spacing:3px;margin-bottom:28px;">// ANTHROPIC API KEY REQUIRED</div>
-    <div style="font-size:10px;color:#888;margin-bottom:8px;">API KEY</div>
-    <input id="api-key-input" type="password" placeholder="sk-ant-..."
-      style="width:100%;background:#0a0a0a;border:1px solid #444;color:#e0e0e0;font-family:'Share Tech Mono',monospace;font-size:13px;padding:10px 12px;outline:none;margin-bottom:10px;"
-    />
-    <div style="font-size:10px;color:#3a3a3a;margin-bottom:24px;">Stored locally. Never shared.</div>
-    <button onclick="saveApiKey()" style="width:100%;background:none;border:1px solid #666;color:#fff;font-family:'Share Tech Mono',monospace;font-size:14px;padding:10px;cursor:pointer;letter-spacing:2px;">[ CONNECT ]</button>
-    <div id="key-error" style="color:#ff3c3c;font-size:11px;margin-top:10px;display:none;">Invalid key</div>
-  </div>
-</div>
-<script>
-function saveApiKey(){
-  var k=document.getElementById('api-key-input').value.trim();
-  if(!k.startsWith('sk-')){document.getElementById('key-error').style.display='block';return;}
-  localStorage.setItem('cc-api-key',k);
-  document.getElementById('key-overlay').style.display='none';
-}
-var _f=window.fetch;
-window.fetch=function(u,o){
-  if(u&&u.includes('anthropic.com')){
-    o=o||{};o.headers=o.headers||{};
-    o.headers['x-api-key']=localStorage.getItem('cc-api-key')||'';
-    o.headers['anthropic-version']='2023-06-01';
-    o.headers['anthropic-dangerous-direct-browser-access']='true';
-  }
-  return _f(u,o);
-};
-if(localStorage.getItem('cc-api-key'))document.getElementById('key-overlay').style.display='none';
 </script>
 </body>
 </html>
