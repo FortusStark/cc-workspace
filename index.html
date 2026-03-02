@@ -421,7 +421,7 @@ body::before {
         <input type="file" id="img-file" accept="image/*" multiple style="display:none;" onchange="handleImgFile(event)">
         <button id="send-btn" onclick="doSend()">SEND</button>
       </div>
-      <div class="hint">/help &nbsp;/model &nbsp;/search &nbsp;/persona &nbsp;/remember &nbsp;/memory &nbsp;/progress &nbsp;/clear &nbsp;/export &nbsp;/debate</div>
+      <div class="hint">/help &nbsp;/model &nbsp;/search &nbsp;/email &nbsp;/bolt &nbsp;/remember &nbsp;/memory &nbsp;/progress &nbsp;/clear &nbsp;/export</div>
     </div>
   </div>
 
@@ -558,6 +558,7 @@ const SLASH = [
   {c:'/projects', d:'List projects'},
   {c:'/debate',   d:'/debate <topic> — Fortus vs Torque'},
   {c:'/bolt',     d:'/bolt <action> — execute on Mac via BOLT'},
+  {c:'/email',    d:'/email inbox | read <id> | draft <to> <subj> <body> | send <to> <subj> <body>'},
   {c:'/file',     d:'/file <name> — ask AI about file'},
   {c:'/status',   d:'Show bot statuses'},
 ];
@@ -1157,6 +1158,24 @@ const handlers={
   '/clearall':()=>{Object.keys(chs).forEach(ch=>{chs[ch].msgs=[];chs[ch].tokens=0;document.getElementById(`msgs-${ch}`).innerHTML='';});addMsg(S.activeCh,'sys','All channels cleared.');},
   '/export':()=>exportSess(),
   '/tokens':()=>{const ch=S.activeCh;showModal('TOKENS',`Channel: ${CHANNELS[ch].name}\nTokens: ${chs[ch].tokens.toLocaleString()}\nUsage: ${Math.round(chs[ch].tokens/MAX_CTX*100)}%\n\nFortus: ${chs.fortus.tokens}\nTorque: ${chs.torque.tokens}\nTri: ${chs.tri.tokens}`);},
+  '/email':(a)=>{
+    const sub=a[0]||'inbox';
+    if(sub==='inbox'||!a.length){
+      boltCmd('run',{command:'python3 ~/torque-workspace/bots/gmail_bridge.py inbox 10'});
+    } else if(sub==='read'&&a[1]){
+      boltCmd('run',{command:`python3 ~/torque-workspace/bots/gmail_bridge.py read ${a[1]}`});
+    } else if(sub==='draft'&&a.length>=3){
+      const to=a[1]; const subj=a[2]; const body=a.slice(3).join(' ');
+      boltCmd('run',{command:`python3 ~/torque-workspace/bots/gmail_bridge.py draft "${to}" "${subj}" "${body}"`});
+    } else if(sub==='send'&&a.length>=3){
+      const confirmed=confirm(`Send email to ${a[1]}?`);
+      if(!confirmed){addMsg(S.activeCh,'sys','Send cancelled.');return;}
+      const to=a[1]; const subj=a[2]; const body=a.slice(3).join(' ');
+      boltCmd('run',{command:`python3 ~/torque-workspace/bots/gmail_bridge.py send "${to}" "${subj}" "${body}"`});
+    } else {
+      addMsg(S.activeCh,'sys','Usage: /email inbox | /email read <id> | /email draft <to> <subject> <body> | /email send <to> <subject> <body>');
+    }
+  },
   '/bolt':(a)=>{
     const action=a[0];
     if(!action){addMsg(S.activeCh,'sys','Usage: /bolt screenshot|open|type|click|key|run|notify|clipboard\nExample: /bolt open https://...');return;}
