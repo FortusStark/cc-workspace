@@ -839,7 +839,7 @@ body::after {
             onkeydown="handleKey(event)" oninput="handleInput(this)"></textarea>
         </div>
         <button id="img-btn" title="Attach image" onclick="document.getElementById('img-input').click()" style="background:var(--bg3);border:1px solid var(--border);color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:16px;padding:2px 10px;cursor:pointer;flex-shrink:0;transition:all 0.15s;z-index:1;" onmouseover="this.style.color='var(--white)'" onmouseout="this.style.color='var(--dim)'">⊕</button>
-<input type="file" id="img-input" accept="image/*" style="display:none;position:absolute;" onchange="handleImageAttach(event)">
+<input type="file" id="img-input" accept="image/*" style="display:none;" onchange="handleImageAttach(event)">
 <button id="send-btn" onclick="sendMessage()">SEND</button>
       </div>
       <div class="cmd-hint">/help &nbsp;/model &nbsp;/search &nbsp;/persona &nbsp;/summarize &nbsp;/progress &nbsp;/clear &nbsp;/export &nbsp;/tokens &nbsp;/review</div>
