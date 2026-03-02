@@ -565,11 +565,7 @@ function changeKey() {
 // ── MEMORY ───────────────────────────────────────────────
 function getMemoryContext() {
   if(!S.memory.length||!S.memoryEnabled) return '';
-  return '
-
-## PERSISTENT MEMORY (from previous sessions):
-' + S.memory.map(m=>`- ${m.text}`).join('
-');
+  return '\n\n## PERSISTENT MEMORY (from previous sessions):\n' + S.memory.map(m=>`- ${m.text}`).join('\n');
 }
 
 function renderMemory() {
