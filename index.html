@@ -20,685 +20,308 @@
   --accent: #d0c0a0;
   --amber: #e8a840;
   --red:   #e05248;
-  --green-light: #58c878;
-  --glow-w: 0 0 6px rgba(240,230,208,0.1);
-
-  /* channel colors - muted warm tints */
+  --green: #58c878;
   --fortus-c: #a0b8d0;
-  --torque-c:  #c8a880;
-  --tri-c:    #caffbf;
+  --torque-c: #c8a880;
+  --tri-c:    #a8c8a8;
 }
 
 * { margin:0; padding:0; box-sizing:border-box; }
 
 body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Share Tech Mono', monospace;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  background:var(--bg); color:var(--text);
+  font-family:'Share Tech Mono',monospace;
+  height:100vh; display:flex; flex-direction:column; overflow:hidden;
 }
 
-/* Scanlines */
 body::before {
-  content:'';
-  position:fixed;
-  inset:0;
-  background: repeating-linear-gradient(0deg, rgba(0,0,0,0.08) 0, rgba(0,0,0,0.08) 1px, transparent 1px, transparent 4px);
-  pointer-events:none;
-  z-index:9999;
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:9999;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,0.06) 0,rgba(0,0,0,0.06) 1px,transparent 1px,transparent 4px);
 }
 
-/* Vignette */
-body::after {
-  content:'';
-  position:fixed;
-  inset:0;
-  background: radial-gradient(ellipse at 50% 50%, transparent 60%, rgba(0,0,0,0.6) 100%);
-  pointer-events:none;
-  z-index:9998;
-}
+.blink { animation:blink 1s step-end infinite; }
+@keyframes blink { 50%{opacity:0;} }
 
-.blink { animation: blink 1s step-end infinite; }
-@keyframes blink { 50% { opacity:0; } }
+/* STATUS LIGHTS */
+.sl { width:8px; height:8px; border-radius:50%; display:inline-block; flex-shrink:0; transition:all 0.3s; }
+.sl.online  { background:var(--green); box-shadow:0 0 6px var(--green); animation:pg 2s ease-in-out infinite; }
+.sl.working { background:var(--amber); box-shadow:0 0 6px var(--amber); animation:pa 0.8s ease-in-out infinite; }
+.sl.offline { background:var(--red); box-shadow:0 0 4px var(--red); }
+.sl.idle    { background:#444; }
+@keyframes pg { 0%,100%{box-shadow:0 0 4px var(--green);}50%{box-shadow:0 0 10px var(--green);} }
+@keyframes pa { 0%,100%{opacity:1;}50%{opacity:0.5;} }
 
-/* ── STATUS LIGHT ── */
-.status-light {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  display: inline-block;
-  flex-shrink: 0;
-  transition: background 0.3s, box-shadow 0.3s;
-}
-.status-light.online {
-  background: var(--green-light);
-  box-shadow: 0 0 6px var(--green-light), 0 0 12px rgba(0,255,65,0.4);
-  animation: pulse-green 2s ease-in-out infinite;
-}
-.status-light.working {
-  background: var(--amber);
-  box-shadow: 0 0 6px var(--amber), 0 0 12px rgba(255,179,0,0.4);
-  animation: pulse-amber 0.8s ease-in-out infinite;
-}
-.status-light.offline {
-  background: var(--red);
-  box-shadow: 0 0 4px var(--red);
-  animation: none;
-}
-.status-light.idle {
-  background: #444;
-  box-shadow: none;
-  animation: none;
-}
-
-@keyframes pulse-green {
-  0%,100% { box-shadow: 0 0 4px var(--green-light), 0 0 8px rgba(0,255,65,0.3); }
-  50%      { box-shadow: 0 0 8px var(--green-light), 0 0 16px rgba(0,255,65,0.5); }
-}
-@keyframes pulse-amber {
-  0%,100% { box-shadow: 0 0 4px var(--amber); opacity:1; }
-  50%      { box-shadow: 0 0 10px var(--amber); opacity:0.7; }
-}
-
-/* ── TOPBAR ── */
+/* TOPBAR */
 #topbar {
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding: 5px 14px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg2);
-  flex-shrink:0;
-  gap:12px;
+  display:flex; align-items:center; gap:8px; padding:5px 12px;
+  border-bottom:1px solid var(--border); background:var(--bg2); flex-shrink:0; flex-wrap:nowrap;
 }
-#topbar .logo {
-  font-family:'VT323',monospace;
-  font-size:22px;
-  color: var(--white);
-  letter-spacing:3px;
-  white-space:nowrap;
-}
-#topbar .logo span { color: var(--dim); }
+.logo { font-family:'VT323',monospace; font-size:22px; color:var(--white); letter-spacing:3px; white-space:nowrap; flex-shrink:0; }
+.logo span { color:var(--dim); }
+.top-stats { display:flex; gap:6px; align-items:center; flex:1; overflow-x:auto; }
+.sp { background:var(--bg3); border:1px solid var(--border); padding:2px 7px; font-size:10px; display:flex; gap:5px; align-items:center; flex-shrink:0; }
+.sp label { color:var(--dim); text-transform:uppercase; }
+.sp .v { color:var(--accent); }
+.sp.warn .v { color:var(--amber); }
+.sp.hot  .v { color:var(--red); }
+#tbar { width:60px; height:4px; background:var(--faint); }
+#tbf  { height:100%; background:var(--accent); width:0%; transition:width 0.4s; }
+.tbtn { background:none; border:1px solid var(--faint); color:var(--faint); font-family:inherit; font-size:10px; padding:2px 7px; cursor:pointer; flex-shrink:0; letter-spacing:1px; transition:all 0.15s; }
+.tbtn:hover { border-color:var(--border-hi); color:var(--accent); }
 
-.top-stats {
-  display:flex; gap:10px; align-items:center; font-size:11px; flex-wrap:wrap;
-}
-.stat-pill {
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  padding: 2px 8px;
-  border-radius:2px;
-  display:flex; gap:6px; align-items:center;
-}
-.stat-pill label { color: var(--dim); font-size:10px; text-transform:uppercase; }
-.stat-pill .val  { color: var(--accent); }
-.stat-pill.warn .val { color: var(--amber); }
-.stat-pill.hot  .val { color: var(--red); }
+/* MAIN */
+#main { display:flex; flex:1; overflow:hidden; }
 
-#token-bar {
-  width:70px; height:5px;
-  background: var(--faint);
-  border: 1px solid var(--border);
-  overflow:hidden;
-}
-#token-bar-fill {
-  height:100%;
-  background: var(--accent);
-  width:0%;
-  transition: width 0.4s, background 0.3s;
-}
-
-/* ── MAIN LAYOUT ── */
-#main {
-  display:flex;
-  flex:1;
-  overflow:hidden;
-}
-
-/* ── SIDEBAR ── */
+/* SIDEBAR */
 #sidebar {
-  width: 220px;
-  border-right: 1px solid var(--border);
-  display:flex;
-  flex-direction:column;
-  background: var(--bg2);
-  flex-shrink:0;
-  overflow:hidden;
-  transition: width 0.22s ease;
+  width:220px; border-right:1px solid var(--border); display:flex;
+  flex-direction:column; background:var(--bg2); flex-shrink:0; overflow:hidden; transition:width 0.2s;
 }
-#sidebar.collapsed {
-  width: 36px;
-  min-width: 36px;
-}
-#sidebar.collapsed .sidebar-content { display:none; }
+#sidebar.collapsed { width:36px; min-width:36px; }
+#sidebar.collapsed .sc { display:none; }
+#stog { padding:7px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--dim); font-size:14px; border-bottom:1px solid var(--border); flex-shrink:0; transition:all 0.15s; }
+#stog:hover { color:var(--white); background:var(--bg3); }
+.sc { display:flex; flex-direction:column; flex:1; overflow:hidden; }
+.ph { padding:6px 12px; border-bottom:1px solid var(--border); font-size:10px; color:var(--dim); letter-spacing:2px; text-transform:uppercase; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; }
+.ph button { background:none; border:1px solid var(--faint); color:var(--accent); cursor:pointer; font-family:inherit; font-size:10px; padding:1px 6px; }
+.ph button:hover { border-color:var(--border-hi); }
 
-#sidebar-toggle {
-  border-bottom: 1px solid var(--border);
-  padding: 7px;
-  cursor:pointer;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  color: var(--dim);
-  font-size:14px;
-  flex-shrink:0;
-  transition: color 0.15s;
-  background: var(--bg2);
-}
-#sidebar-toggle:hover { color: var(--white); background: var(--bg3); }
+#bot-list { border-bottom:1px solid var(--border); padding:8px 12px; display:flex; flex-direction:column; gap:5px; flex-shrink:0; }
+.br { display:flex; align-items:center; gap:7px; font-size:11px; }
+.br .bn { color:var(--accent); flex:1; }
+.br .bs { color:var(--dim); font-size:10px; }
 
-.sidebar-content { display:flex; flex-direction:column; flex:1; overflow:hidden; }
+#proj-list { flex:1; overflow-y:auto; padding:4px 0; }
+#proj-list::-webkit-scrollbar { width:3px; }
+#proj-list::-webkit-scrollbar-thumb { background:var(--faint); }
 
-.panel-header {
-  padding: 7px 12px;
-  border-bottom: 1px solid var(--border);
-  font-size:10px;
-  color: var(--dim);
-  letter-spacing:2px;
-  text-transform:uppercase;
-  display:flex; justify-content:space-between; align-items:center;
-  flex-shrink:0;
-}
-.panel-header button {
-  background:none; border:1px solid var(--faint); color:var(--accent); cursor:pointer;
-  font-family:inherit; font-size:10px; padding:1px 6px;
-  transition: all 0.15s;
-}
-.panel-header button:hover { border-color:var(--border-hi); }
+.pi { padding:5px 12px; cursor:pointer; font-size:11px; border-left:2px solid transparent; transition:all 0.12s; position:relative; }
+.pi:hover { background:rgba(255,255,255,0.03); border-left-color:var(--faint); }
+.pi.active { background:rgba(255,255,255,0.05); border-left-color:var(--accent); }
+.pi .pn { color:var(--text); }
+.pi .pm { font-size:10px; color:var(--dim); margin-top:2px; }
+.pi .pb { position:absolute; right:8px; top:6px; font-size:9px; padding:1px 4px; border:1px solid var(--faint); color:var(--dim); }
+.pi.active .pb { border-color:var(--border-hi); color:var(--accent); }
+.pi .plinks { margin-top:4px; display:flex; flex-wrap:wrap; gap:3px; }
+.plink { font-size:9px; color:var(--fortus-c); text-decoration:none; border:1px solid var(--border); padding:1px 5px; display:inline-block; }
+.plink:hover { border-color:var(--border-hi); }
 
-/* Bot status list */
-#bot-status-list {
-  border-bottom: 1px solid var(--border);
-  padding: 8px 12px;
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-  flex-shrink:0;
-}
-.bot-row {
-  display:flex; align-items:center; gap:8px; font-size:11px;
-}
-.bot-row .bot-name { color: var(--accent); flex:1; }
-.bot-row .bot-status-txt { color: var(--dim); font-size:10px; }
+#npf { padding:8px 10px; border-top:1px solid var(--border); display:none; flex-direction:column; gap:4px; }
+#npf.open { display:flex; }
+#npf input, #npf textarea { background:var(--bg3); border:1px solid var(--border); color:var(--text); font-family:inherit; font-size:11px; padding:4px 6px; outline:none; resize:none; }
+#npf input:focus, #npf textarea:focus { border-color:var(--border-hi); }
+#npf .fbtns { display:flex; gap:4px; }
+#npf button { flex:1; background:none; border:1px solid var(--border); color:var(--text); font-family:inherit; font-size:10px; padding:3px; cursor:pointer; }
+#npf button.ok { border-color:var(--border-hi); }
+#npf button:hover { background:rgba(255,255,255,0.04); }
 
-#project-list {
-  flex:1; overflow-y:auto; padding:4px 0;
-}
-#project-list::-webkit-scrollbar { width:3px; }
-#project-list::-webkit-scrollbar-thumb { background:var(--faint); }
+/* CHAT AREA */
+#chat-col { flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0; }
 
-.project-item {
-  padding: 6px 12px;
-  cursor:pointer;
-  font-size:11px;
-  border-left: 2px solid transparent;
-  transition: all 0.12s;
-  position:relative;
+#ch-tabs { display:flex; border-bottom:1px solid var(--border); background:var(--bg2); flex-shrink:0; }
+.ct {
+  flex:1; padding:7px 8px; cursor:pointer; font-size:11px; letter-spacing:1px; text-align:center;
+  border-right:1px solid var(--border); border-bottom:2px solid transparent; color:var(--dim);
+  transition:all 0.15s; display:flex; align-items:center; justify-content:center; gap:6px; text-transform:uppercase;
+  user-select:none;
 }
-.project-item:hover { background: rgba(255,255,255,0.03); border-left-color: var(--faint); }
-.project-item.active { background: rgba(255,255,255,0.05); border-left-color: var(--accent); }
-.project-item .proj-name { color: var(--text); }
-.project-item .proj-meta { font-size:10px; color:var(--dim); margin-top:2px; }
-.project-item .proj-badge {
-  position:absolute; right:8px; top:8px;
-  font-size:9px; padding:1px 4px;
-  border:1px solid var(--faint); color:var(--dim);
-}
-.project-item.active .proj-badge { border-color:var(--border-hi); color:var(--accent); }
+.ct:last-child { border-right:none; }
+.ct:hover { background:rgba(255,255,255,0.03); color:var(--accent); }
+.ct.active { color:var(--white); border-bottom-color:var(--accent); background:rgba(255,255,255,0.04); }
+.ct .cl { display:flex; flex-direction:column; align-items:flex-start; gap:1px; }
+.ct .cn { font-size:11px; }
+.ct .cs { font-size:9px; color:var(--dim); letter-spacing:0; text-transform:none; }
+.ct.active .cs { color:#888; }
+.unread { background:var(--accent); color:#000; font-size:9px; padding:0 4px; border-radius:8px; display:none; }
+.unread.has { display:inline-block; }
 
-#new-project-form {
-  padding:8px 10px;
-  border-top: 1px solid var(--border);
-  display:none; flex-direction:column; gap:4px;
-}
-#new-project-form.open { display:flex; }
-#new-project-form input, #new-project-form textarea {
-  background:var(--bg3); border:1px solid var(--border);
-  color:var(--text); font-family:inherit; font-size:11px;
-  padding:4px 6px; outline:none; resize:none;
-}
-#new-project-form input:focus, #new-project-form textarea:focus { border-color:var(--border-hi); }
-#new-project-form .form-btns { display:flex; gap:4px; }
-#new-project-form button {
-  flex:1; background:none; border:1px solid var(--border); color:var(--text);
-  font-family:inherit; font-size:10px; padding:3px; cursor:pointer;
-}
-#new-project-form button.confirm { border-color:var(--border-hi); }
-#new-project-form button:hover { background:rgba(255,255,255,0.04); }
+#ctrl-bar { display:flex; align-items:center; gap:6px; padding:4px 10px; border-bottom:1px solid var(--border); font-size:11px; flex-shrink:0; background:var(--bg2); flex-wrap:nowrap; overflow-x:auto; }
+#ctrl-bar select { background:var(--bg3); border:1px solid var(--border); color:var(--text); font-family:inherit; font-size:11px; padding:2px 5px; cursor:pointer; outline:none; flex-shrink:0; }
+.cb { background:none; border:1px solid var(--border); color:var(--dim); font-family:inherit; font-size:10px; padding:2px 7px; cursor:pointer; transition:all 0.15s; letter-spacing:1px; text-transform:uppercase; white-space:nowrap; flex-shrink:0; }
+.cb:hover { border-color:var(--border-hi); color:var(--text); }
+.cb.on { border-color:var(--border-hi); color:var(--white); background:rgba(255,255,255,0.06); }
+#plabel { margin-left:auto; color:var(--dim); font-size:10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:150px; flex-shrink:0; }
 
-/* ── CHAT COLUMN ── */
-#chat-col {
-  flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0;
-}
+#cost-bar { display:flex; gap:10px; align-items:center; padding:3px 12px; border-bottom:1px solid var(--border); background:var(--bg); font-size:10px; color:var(--dim); flex-shrink:0; flex-wrap:wrap; }
+#cost-bar .ci { display:flex; gap:4px; }
+#cost-bar .cl { color:var(--faint); }
+#cost-bar .cv { color:var(--accent); }
+#cost-bar .cv.warn { color:var(--amber); }
 
-/* ── CHAT CHANNEL TABS ── */
-#channel-tabs {
-  display:flex;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg2);
-  flex-shrink:0;
-}
-.ch-tab {
-  flex:1;
-  padding: 8px 10px;
-  cursor:pointer;
-  font-size:11px;
-  letter-spacing:1px;
-  text-align:center;
-  border-right: 1px solid var(--border);
-  border-bottom: 2px solid transparent;
-  color: var(--dim);
-  transition: all 0.15s;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:7px;
-  text-transform:uppercase;
-}
-.ch-tab:last-child { border-right:none; }
-.ch-tab:hover { background:rgba(255,255,255,0.03); color:var(--accent); }
-.ch-tab.active { color:var(--white); border-bottom-color:var(--accent); background:rgba(255,255,255,0.04); }
-.ch-tab .ch-label { display:flex; flex-direction:column; align-items:flex-start; gap:1px; }
-.ch-tab .ch-name { font-size:12px; }
-.ch-tab .ch-sub  { font-size:9px; color:var(--dim); letter-spacing:0; text-transform:none; }
-.ch-tab.active .ch-sub { color:#888; }
-.ch-tab .unread {
-  background:var(--dim); color:#000; font-size:9px;
-  padding:0 5px; border-radius:8px; min-width:16px; text-align:center;
-  display:none;
-}
-.ch-tab .unread.has { display:inline-block; background:var(--accent); }
+.ch-win { display:none; flex:1; flex-direction:column; overflow:hidden; }
+.ch-win.active { display:flex; }
 
-/* ── CHAT CTRL BAR ── */
-#chat-ctrlbar {
-  display:flex; align-items:center; gap:8px;
-  padding: 5px 12px;
-  border-bottom: 1px solid var(--border);
-  font-size:11px;
-  flex-shrink:0;
-  flex-wrap:wrap;
-  background: var(--bg2);
-}
-#chat-ctrlbar select {
-  background:var(--bg3); border:1px solid var(--border); color:var(--text);
-  font-family:inherit; font-size:11px; padding:2px 6px; cursor:pointer; outline:none;
-}
-#chat-ctrlbar select option { background:var(--bg); }
+.msgs { flex:1; overflow-y:auto; padding:12px 16px; display:flex; flex-direction:column; gap:8px; scroll-behavior:smooth; }
+.msgs::-webkit-scrollbar { width:3px; }
+.msgs::-webkit-scrollbar-thumb { background:var(--faint); }
 
-.ctrl-btn {
-  background:none; border:1px solid var(--border); color:var(--dim);
-  font-family:inherit; font-size:10px; padding:2px 8px; cursor:pointer;
-  transition:all 0.15s; letter-spacing:1px; text-transform:uppercase;
-}
-.ctrl-btn:hover { border-color:var(--border-hi); color:var(--text); }
-.ctrl-btn.on  { border-color:var(--border-hi); color:var(--white); background:rgba(255,255,255,0.06); }
+.msg { display:flex; flex-direction:column; gap:3px; animation:fi 0.18s ease; }
+@keyframes fi { from{opacity:0;transform:translateY(3px);}to{opacity:1;} }
+.mh { display:flex; gap:8px; align-items:center; font-size:10px; }
+.mh .who { display:flex; align-items:center; gap:5px; font-size:11px; letter-spacing:1px; text-transform:uppercase; }
+.mh .ts  { color:var(--faint); font-size:10px; }
+.msg.user .who { color:#c8c8c8; }
+.msg.ai   .who { color:var(--white); }
+.msg.sys  .who { color:var(--amber); }
+.msg.err  .who { color:var(--red); }
+.ch-fortus .msg.ai .who { color:var(--fortus-c); }
+.ch-torque .msg.ai .who { color:var(--torque-c); }
+.ch-tri    .msg.ai .who { color:var(--tri-c); }
+.mb { font-size:13px; line-height:1.7; padding:6px 10px; border-left:2px solid; white-space:pre-wrap; word-break:break-word; color:var(--text); }
+.msg.user .mb { border-color:#444; color:#ccc; }
+.msg.ai   .mb { border-color:#333; color:#e8e8e8; }
+.msg.sys  .mb { border-color:rgba(232,168,64,0.3); color:var(--amber); font-size:11px; }
+.msg.err  .mb { border-color:rgba(224,82,72,0.35); color:var(--red); font-size:11px; }
+.ch-fortus .msg.ai .mb { border-color:rgba(160,184,208,0.25); }
+.ch-torque .msg.ai .mb { border-color:rgba(200,168,128,0.25); }
+.ch-tri    .msg.ai .mb { border-color:rgba(168,200,168,0.25); }
 
-#proj-label {
-  margin-left:auto; color:var(--dim); font-size:10px;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px;
-}
-
-/* ── CHAT WINDOWS ── */
-.chat-channel { display:none; flex:1; flex-direction:column; overflow:hidden; }
-.chat-channel.active { display:flex; }
-
-.chat-window {
-  flex:1; overflow-y:auto;
-  padding: 14px 18px;
-  display:flex; flex-direction:column; gap:10px;
-  scroll-behavior:smooth;
-}
-.chat-window::-webkit-scrollbar { width:3px; }
-.chat-window::-webkit-scrollbar-thumb { background:var(--faint); }
-
-/* ── MESSAGES ── */
-.msg {
-  display:flex; flex-direction:column; gap:3px;
-  animation: fadein 0.18s ease;
-}
-@keyframes fadein { from { opacity:0; transform:translateY(3px); } to { opacity:1; } }
-
-.msg-header {
-  display:flex; gap:8px; align-items:center; font-size:10px;
-}
-.msg-header .who {
-  display:flex; align-items:center; gap:5px;
-  font-size:11px; letter-spacing:1px; text-transform:uppercase;
-}
-.msg-header .ts { color:var(--faint); font-size:10px; }
-
-.msg.user   .who { color:#c8c8c8; }
-.msg.ai     .who { color:var(--white); }
-.msg.sys    .who { color:var(--amber); }
-.msg.err    .who { color:var(--red); }
-
-/* channel-specific AI name colors */
-.ch-fortus .msg.ai .who { color: var(--fortus-c); }
-.ch-torque  .msg.ai .who { color: var(--torque-c);  }
-.ch-tri    .msg.ai .who { color: var(--tri-c);     }
-
-.msg-body {
-  font-size:13px; line-height:1.7;
-  padding: 7px 12px;
-  border-left: 2px solid;
-  white-space: pre-wrap;
-  word-break: break-word;
-  color: var(--text);
-}
-.msg.user  .msg-body { border-color:#444; color:#ccc; }
-.msg.ai    .msg-body { border-color:#333; color:#e8e8e8; }
-.msg.sys   .msg-body { border-color:rgba(255,179,0,0.3); color:var(--amber); font-size:11px; }
-.msg.err   .msg-body { border-color:rgba(255,60,60,0.35); color:var(--red); font-size:11px; }
-
-.ch-fortus .msg.ai .msg-body { border-color:rgba(160,196,255,0.25); }
-.ch-torque  .msg.ai .msg-body { border-color:rgba(255,214,165,0.25); }
-.ch-tri    .msg.ai .msg-body { border-color:rgba(202,255,191,0.25); }
-
-/* typing */
-.typing-dots span { animation:dotb 1.2s infinite; display:inline-block; }
+.typing-dots span { animation:db 1.2s infinite; display:inline-block; }
 .typing-dots span:nth-child(2){animation-delay:.2s;}
 .typing-dots span:nth-child(3){animation-delay:.4s;}
-@keyframes dotb{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-4px)}}
+@keyframes db{0%,80%,100%{transform:translateY(0);}40%{transform:translateY(-4px);}}
 
-/* ── INPUT AREA ── */
-#input-area {
-  border-top: 1px solid var(--border);
-  padding: 10px 14px;
-  background: var(--bg2);
-  flex-shrink:0;
-}
-
-#persona-bar {
-  display:none; margin-bottom:8px;
-  flex-direction:column; gap:4px;
-}
+/* INPUT */
+#input-area { border-top:1px solid var(--border); padding:8px 12px; background:var(--bg2); flex-shrink:0; }
+#persona-bar { display:none; margin-bottom:8px; flex-direction:column; gap:4px; }
 #persona-bar.open { display:flex; }
 #persona-bar label { font-size:10px; color:var(--dim); letter-spacing:1px; }
-#system-prompt-input {
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  color: var(--text);
-  font-family:inherit; font-size:11px;
-  padding:6px 8px; resize:vertical;
-  min-height:50px; max-height:120px;
-  outline:none; width:100%;
-}
-#system-prompt-input:focus { border-color:var(--border-hi); }
-.persona-btns { display:flex; gap:6px; }
-.persona-btns button {
-  background:none; border:1px solid var(--border); color:var(--text);
-  font-family:inherit; font-size:10px; padding:2px 8px; cursor:pointer;
-}
-.persona-btns button:hover { border-color:var(--border-hi); }
-.persona-btns button.apply { border-color:#666; }
+#spi { background:var(--bg3); border:1px solid var(--border); color:var(--text); font-family:inherit; font-size:11px; padding:6px 8px; resize:vertical; min-height:50px; max-height:120px; outline:none; width:100%; }
+#spi:focus { border-color:var(--border-hi); }
+.pbtns { display:flex; gap:6px; }
+.pbtns button { background:none; border:1px solid var(--border); color:var(--text); font-family:inherit; font-size:10px; padding:2px 8px; cursor:pointer; }
+.pbtns button:hover { border-color:var(--border-hi); }
 
-/* active channel indicator in input */
-#channel-indicator {
-  font-size:10px; color:var(--dim); margin-bottom:5px;
-  display:flex; align-items:center; gap:6px;
-}
-#channel-indicator .ch-dot {
-  width:6px; height:6px; border-radius:50%; background:var(--accent);
-}
+#chi { font-size:10px; color:var(--dim); margin-bottom:4px; display:flex; align-items:center; gap:6px; }
+#chi .cd { width:6px; height:6px; border-radius:50%; background:var(--accent); }
 
-#cmd-line { display:flex; gap:8px; align-items:flex-end; position:relative; }
-.prompt-prefix { color:var(--dim); font-size:13px; padding-bottom:6px; flex-shrink:0; }
+#img-strip { display:none; gap:6px; flex-wrap:wrap; margin-bottom:6px; }
+#img-strip.has { display:flex; }
+.img-thumb { position:relative; }
+.img-thumb img { height:48px; width:48px; object-fit:cover; border:1px solid var(--border); display:block; }
+.img-thumb button { position:absolute; top:-4px; right:-4px; background:var(--red); border:none; color:#fff; font-size:9px; width:15px; height:15px; cursor:pointer; padding:0; line-height:1; border-radius:50%; }
 
-#user-input {
-  flex:1;
-  background:none;
-  border:none; border-bottom: 1px solid var(--faint);
-  color: var(--text);
-  font-family:'Share Tech Mono',monospace;
-  font-size:13px;
-  padding:4px 0;
-  outline:none; resize:none;
-  min-height:28px; max-height:120px;
-  overflow-y:auto; line-height:1.5;
-}
-#user-input:focus { border-bottom-color:var(--border-hi); }
-#user-input::placeholder { color:var(--faint); }
-
-#send-btn {
-  background:var(--bg3);
-  border:1px solid var(--border);
-  color:var(--accent);
-  font-family:'VT323',monospace;
-  font-size:18px; padding:2px 14px;
-  cursor:pointer; letter-spacing:1px;
-  transition:all 0.15s; flex-shrink:0;
-}
+#cmdline { display:flex; gap:6px; align-items:flex-end; position:relative; }
+.pfx { color:var(--dim); font-size:13px; padding-bottom:5px; flex-shrink:0; }
+#slash-dd { display:none; position:absolute; bottom:100%; left:0; right:60px; background:var(--bg2); border:1px solid var(--border); max-height:180px; overflow-y:auto; z-index:100; }
+#slash-dd.open { display:block; }
+.si { padding:5px 12px; font-size:11px; cursor:pointer; display:flex; gap:10px; border-bottom:1px solid var(--bg3); }
+.si:hover { background:rgba(255,255,255,0.04); }
+.si .sc2 { color:var(--text); }
+.si .sd { color:var(--dim); font-size:10px; }
+#ui { flex:1; background:none; border:none; border-bottom:1px solid var(--faint); color:var(--text); font-family:'Share Tech Mono',monospace; font-size:13px; padding:4px 0; outline:none; resize:none; min-height:28px; max-height:120px; overflow-y:auto; line-height:1.5; }
+#ui:focus { border-bottom-color:var(--border-hi); }
+#ui::placeholder { color:var(--faint); }
+#img-btn { background:var(--bg3); border:1px solid var(--border); color:var(--dim); font-family:inherit; font-size:16px; padding:2px 8px; cursor:pointer; flex-shrink:0; transition:all 0.15s; }
+#img-btn:hover { color:var(--white); border-color:var(--border-hi); }
+#img-file { display:none; }
+#send-btn { background:var(--bg3); border:1px solid var(--border); color:var(--accent); font-family:'VT323',monospace; font-size:18px; padding:2px 12px; cursor:pointer; flex-shrink:0; transition:all 0.15s; }
 #send-btn:hover { border-color:var(--border-hi); color:var(--white); }
 #send-btn:disabled { opacity:0.3; cursor:not-allowed; }
+.hint { font-size:10px; color:var(--faint); margin-top:3px; }
 
-.cmd-hint { font-size:10px; color:var(--faint); margin-top:4px; }
+/* RIGHT PANEL */
+#rpanel { width:230px; border-left:1px solid var(--border); display:flex; flex-direction:column; background:var(--bg2); flex-shrink:0; }
+#rtabs { display:flex; border-bottom:1px solid var(--border); }
+.rt { flex:1; padding:6px 4px; font-size:10px; letter-spacing:1px; text-align:center; cursor:pointer; color:var(--dim); border-right:1px solid var(--border); border-bottom:2px solid transparent; transition:all 0.15s; text-transform:uppercase; user-select:none; }
+.rt:last-child { border-right:none; }
+.rt:hover { color:var(--text); }
+.rt.active { color:var(--white); border-bottom-color:var(--accent); background:rgba(255,255,255,0.03); }
+.tp { display:none; flex:1; flex-direction:column; overflow:hidden; }
+.tp.active { display:flex; }
 
-/* slash dropdown */
-#slash-dropdown {
-  display:none; position:absolute; bottom:100%; left:0; right:0;
-  background:var(--bg2); border:1px solid var(--border);
-  max-height:180px; overflow-y:auto; z-index:100;
+#fdrop { margin:8px; border:1px dashed var(--border); padding:12px 6px; text-align:center; cursor:pointer; font-size:11px; color:var(--dim); transition:all 0.15s; flex-shrink:0; }
+#fdrop:hover { border-color:var(--border-hi); color:var(--text); }
+#flist { flex:1; overflow-y:auto; padding:2px 0; }
+#flist::-webkit-scrollbar { width:3px; }
+#flist::-webkit-scrollbar-thumb { background:var(--faint); }
+.fi2 { padding:4px 10px; font-size:11px; cursor:pointer; border-left:2px solid transparent; transition:all 0.12s; display:flex; justify-content:space-between; align-items:center; }
+.fi2:hover { background:rgba(255,255,255,0.03); border-left-color:var(--faint); }
+.fi2.active { background:rgba(255,255,255,0.05); border-left-color:var(--accent); }
+.fi2 .fn { color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100px; }
+.fi2 .fa button { background:none; border:none; color:var(--dim); cursor:pointer; font-size:10px; padding:1px 3px; }
+.fi2 .fa button:hover { color:var(--text); }
+#fprev { border-top:1px solid var(--border); padding:6px 10px; font-size:10px; color:var(--dim); max-height:110px; overflow-y:auto; flex-shrink:0; }
+
+#links-list { flex:1; overflow-y:auto; padding:8px; display:flex; flex-direction:column; gap:6px; }
+.lcard { background:rgba(255,255,255,0.03); border:1px solid var(--border); padding:8px 10px; }
+.lcard .lt { color:var(--white); font-size:11px; margin-bottom:5px; }
+.lcard a { display:block; font-size:11px; color:var(--fortus-c); text-decoration:none; padding:3px 5px; border:1px solid var(--border); margin-bottom:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.lcard a:hover { background:rgba(255,255,255,0.04); }
+
+#prog-list { flex:1; overflow-y:auto; padding:6px; display:flex; flex-direction:column; gap:6px; }
+.pc { background:rgba(255,255,255,0.03); border:1px solid var(--border); padding:8px 10px; font-size:11px; }
+.pc .pt { color:var(--white); margin-bottom:3px; font-size:12px; }
+.pc .ps { color:var(--dim); font-size:10px; line-height:1.5; margin-bottom:5px; }
+.pc .pb2 { display:flex; align-items:center; gap:6px; }
+.pc .pb2 .bar { flex:1; height:3px; background:var(--faint); }
+.pc .pb2 .fill { height:100%; background:var(--accent); transition:width 0.5s; }
+.pc .pct { color:var(--dim); font-size:10px; width:28px; text-align:right; }
+.pc .pm2 { color:var(--faint); font-size:9px; margin-top:3px; }
+
+.nodata { color:var(--faint); font-size:11px; text-align:center; padding:18px; }
+
+/* RESIZE */
+.rh { width:4px; background:transparent; cursor:col-resize; }
+.rh:hover { background:var(--border); }
+
+/* MODAL */
+#modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:5000; align-items:center; justify-content:center; }
+#modal.open { display:flex; }
+#mbox { background:var(--bg2); border:1px solid var(--border); padding:20px 24px; min-width:280px; max-width:460px; width:90%; max-height:80vh; overflow-y:auto; font-size:12px; }
+#mbox h3 { font-family:'VT323',monospace; font-size:22px; margin-bottom:10px; color:var(--white); }
+#mbox .mc { color:var(--text); line-height:1.7; white-space:pre-wrap; }
+#mbox button { margin-top:12px; background:none; border:1px solid var(--border); color:var(--text); font-family:inherit; font-size:11px; padding:3px 12px; cursor:pointer; }
+#mbox button:hover { border-color:var(--border-hi); }
+
+/* KEY OVERLAY */
+#key-ov { display:flex; position:fixed; inset:0; background:rgba(0,0,0,0.97); z-index:9000; align-items:center; justify-content:center; }
+#kbox { background:#111; border:1px solid #333; padding:32px; width:400px; font-family:'Share Tech Mono',monospace; }
+#kbox .kt { font-family:'VT323',monospace; font-size:28px; color:#fff; margin-bottom:4px; letter-spacing:3px; }
+#kbox .ks { font-size:10px; color:#555; letter-spacing:3px; margin-bottom:24px; }
+#kbox input { width:100%; background:#0a0a0a; border:1px solid #444; color:#e0e0e0; font-family:inherit; font-size:13px; padding:10px 12px; outline:none; margin-bottom:8px; }
+#kbox input:focus { border-color:#888; }
+#kbox .kn { font-size:10px; color:#333; margin-bottom:20px; }
+#kbox button { width:100%; background:none; border:1px solid #666; color:#fff; font-family:inherit; font-size:14px; padding:10px; cursor:pointer; letter-spacing:2px; }
+#kbox button:hover { background:rgba(255,255,255,0.06); }
+#kerr { color:#ff3c3c; font-size:11px; margin-top:8px; display:none; }
+#kinfo { margin-top:14px; font-size:10px; color:#333; }
+
+/* MOBILE */
+@media(max-width:768px) {
+  #sidebar { display:none; }
+  #sidebar.mob-open { display:flex !important; position:fixed; left:0; top:0; bottom:0; z-index:500; width:240px !important; }
+  #rpanel { display:none; }
+  #rpanel.mob-open { display:flex !important; position:fixed; right:0; top:0; bottom:0; z-index:500; width:250px !important; }
+  .rh { display:none; }
+  #topbar { padding:3px 6px; }
+  .logo { font-size:16px; }
+  .top-stats { gap:4px; }
+  .sp { padding:2px 4px; font-size:9px; }
+  .ct .cs { display:none; }
+  #cost-bar { display:none; }
+  #mbar { display:flex !important; }
+  #chat-col { padding-bottom:48px; }
 }
-#slash-dropdown.open { display:block; }
-.slash-item {
-  padding:5px 12px; font-size:11px; cursor:pointer;
-  display:flex; gap:10px; border-bottom:1px solid var(--bg3);
-}
-.slash-item:hover { background:rgba(255,255,255,0.04); }
-.slash-item .cmd { color:var(--text); }
-.slash-item .desc { color:var(--dim); font-size:10px; }
-
-/* ── RIGHT PANEL ── */
-#right-panel {
-  width:240px; min-width:200px;
-  border-left:1px solid var(--border);
-  display:flex; flex-direction:column;
-  background:var(--bg2); flex-shrink:0;
-}
-
-#file-tabs { display:flex; border-bottom:1px solid var(--border); }
-.ftab {
-  flex:1; padding:6px 4px; font-size:10px; letter-spacing:1px;
-  text-align:center; cursor:pointer; color:var(--dim);
-  border-right:1px solid var(--border); border-bottom:2px solid transparent;
-  transition:all 0.15s; text-transform:uppercase;
-}
-.ftab:last-child { border-right:none; }
-.ftab:hover { color:var(--text); }
-.ftab.active { color:var(--white); border-bottom-color:var(--accent); background:rgba(255,255,255,0.03); }
-
-.tab-panel { display:none; flex:1; flex-direction:column; overflow:hidden; }
-.tab-panel.active { display:flex; }
-
-#file-drop-zone {
-  margin:10px; border:1px dashed var(--border);
-  padding:14px 8px; text-align:center; cursor:pointer;
-  font-size:11px; color:var(--dim); transition:all 0.15s;
-}
-#file-drop-zone:hover { border-color:var(--border-hi); color:var(--text); }
-#file-drop-zone input { display:none; }
-
-#file-list { flex:1; overflow-y:auto; padding:4px 0; }
-#file-list::-webkit-scrollbar { width:3px; }
-#file-list::-webkit-scrollbar-thumb { background:var(--faint); }
-
-.file-item {
-  padding:5px 12px; font-size:11px; cursor:pointer;
-  border-left:2px solid transparent; transition:all 0.12s;
-  display:flex; justify-content:space-between; align-items:center;
-}
-.file-item:hover { background:rgba(255,255,255,0.03); border-left-color:var(--faint); }
-.file-item.active { background:rgba(255,255,255,0.05); border-left-color:var(--accent); }
-.file-item .fname { color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:110px; }
-.file-item-actions button {
-  background:none; border:none; color:var(--dim); cursor:pointer; font-size:10px; padding:1px 3px;
-}
-.file-item-actions button:hover { color:var(--text); }
-
-#file-preview {
-  border-top:1px solid var(--border);
-  padding:8px 12px; font-size:10px; color:var(--dim);
-  max-height:120px; overflow-y:auto; flex-shrink:0;
-}
-
-/* progress */
-#progress-list { flex:1; overflow-y:auto; padding:8px; display:flex; flex-direction:column; gap:8px; }
-.progress-card {
-  background:rgba(255,255,255,0.03); border:1px solid var(--border);
-  padding:8px 10px; font-size:11px;
-}
-.progress-card .pc-title { color:var(--white); margin-bottom:4px; font-size:12px; }
-.progress-card .pc-summary { color:var(--dim); font-size:10px; line-height:1.5; margin-bottom:6px; }
-.progress-card .pc-bar-wrap { display:flex; align-items:center; gap:6px; }
-.progress-card .pc-bar { flex:1; height:3px; background:var(--faint); }
-.progress-card .pc-bar-fill { height:100%; background:var(--accent); transition:width 0.5s; }
-.progress-card .pc-pct { color:var(--dim); font-size:10px; width:28px; text-align:right; }
-.progress-card .pc-meta { color:var(--faint); font-size:9px; margin-top:4px; }
-
-.no-data { color:var(--faint); font-size:11px; text-align:center; padding:20px; }
-
-/* resize handles */
-.resize-handle { width:4px; background:transparent; cursor:col-resize; }
-.resize-handle:hover { background:var(--border); }
-
-/* modal */
-#modal-overlay {
-  display:none; position:fixed; inset:0;
-  background:rgba(0,0,0,0.88); z-index:5000;
-  align-items:center; justify-content:center;
-}
-#modal-overlay.open { display:flex; }
-#modal-box {
-  background:var(--bg2); border:1px solid var(--border);
-  padding:20px 24px; min-width:300px; max-width:480px; width:90%;
-  max-height:80vh; overflow-y:auto; font-size:12px;
-}
-#modal-box h3 { font-family:'VT323',monospace; font-size:22px; margin-bottom:12px; color:var(--white); }
-#modal-box .modal-content { color:var(--text); line-height:1.7; white-space:pre-wrap; }
-#modal-box button {
-  margin-top:14px; background:none; border:1px solid var(--border);
-  color:var(--text); font-family:inherit; font-size:11px; padding:4px 14px; cursor:pointer;
-}
-#modal-box button:hover { border-color:var(--border-hi); }
-
-::-webkit-scrollbar { width:3px; }
-::-webkit-scrollbar-thumb { background:var(--faint); }
-
-/* ── MOBILE ── */
-@media (max-width: 768px) {
-  #chat-col { padding-bottom: 50px; }
-  #sidebar { display: none; }
-  #sidebar.mobile-open { display:flex; position:fixed; left:0; top:0; bottom:0; z-index:500; width:240px !important; }
-  #rh-left, #rh-right, .resize-handle { display:none; }
-  #right-panel { display:none; }
-  #right-panel.mobile-open { display:flex; position:fixed; right:0; top:0; bottom:0; z-index:500; width:260px !important; }
-  #topbar { padding:4px 8px; flex-wrap:nowrap; overflow-x:auto; }
-  #topbar .logo { font-size:16px; }
-  .top-stats { gap:6px; flex-wrap:nowrap; }
-  .stat-pill { padding:2px 5px; font-size:10px; }
-  #stat-tokens-full { display:none; }
-  #channel-tabs .ch-sub { display:none; }
-  .ch-tab { padding:6px 4px; font-size:10px; }
-  #chat-ctrlbar { padding:3px 6px; gap:4px; flex-wrap:nowrap; overflow-x:auto; }
-  .ctrl-btn { padding:2px 5px; font-size:9px; white-space:nowrap; }
-  #chat-ctrlbar select { font-size:10px; padding:2px 4px; }
-  #input-area { padding:6px 8px; position:sticky; bottom:0; }
-  #user-input { font-size:14px; }
-  .chat-window { padding:8px 10px; }
-  .msg-body { font-size:12px; padding:5px 8px; }
-  #mobile-bar { display:flex !important; }
-  #proj-label { display:none; }
-  #cost-bar { font-size:9px; }
-}
-
-/* Mobile bottom bar */
-#mobile-bar {
-  display:none;
-  position:fixed;
-  bottom:0; left:0; right:0;
-  background:var(--bg2);
-  border-top:1px solid var(--border);
-  padding:6px 10px;
-  gap:8px;
-  z-index:400;
-  justify-content:space-around;
-}
-#mobile-bar button {
-  background:none; border:1px solid var(--border); color:var(--dim);
-  font-family:'Share Tech Mono',monospace; font-size:10px; padding:4px 10px;
-  cursor:pointer; flex:1; text-align:center;
-}
-#mobile-bar button.active { color:var(--white); border-color:var(--border-hi); }
-
-/* Cost bar */
-#cost-bar {
-  display:flex; gap:12px; align-items:center;
-  padding:3px 12px;
-  border-bottom:1px solid var(--border);
-  background:var(--bg);
-  font-size:10px; color:var(--dim);
-  flex-shrink:0;
-  flex-wrap:wrap;
-}
-#cost-bar .cost-item { display:flex; gap:4px; }
-#cost-bar .cost-label { color:var(--faint); }
-#cost-bar .cost-val { color:var(--accent); }
-#cost-bar .cost-val.warn { color:var(--amber); }
-
-/* CRM quick link */
-.crm-btn {
-  background:none; border:1px solid var(--border); color:var(--dim);
-  font-family:'Share Tech Mono',monospace; font-size:10px; padding:2px 8px;
-  cursor:pointer; letter-spacing:1px; text-decoration:none; display:inline-block;
-  transition:all 0.15s;
-}
-.crm-btn:hover { border-color:var(--border-hi); color:var(--white); }
-
-/* Change key button */
-.key-btn {
-  background:none; border:1px solid var(--faint); color:var(--faint);
-  font-family:'Share Tech Mono',monospace; font-size:10px; padding:2px 6px;
-  cursor:pointer; letter-spacing:1px; transition:all 0.15s; flex-shrink:0;
-}
-.key-btn:hover { border-color:var(--border-hi); color:var(--accent); }
-
+#mbar { display:none; position:fixed; bottom:0; left:0; right:0; background:var(--bg2); border-top:1px solid var(--border); padding:5px 8px; gap:6px; z-index:400; justify-content:space-around; }
+#mbar button { background:none; border:1px solid var(--border); color:var(--dim); font-family:inherit; font-size:10px; padding:4px 8px; cursor:pointer; flex:1; text-align:center; }
+#mbar button:hover { color:var(--white); }
 </style>
 </head>
 <body>
 
 <!-- TOPBAR -->
 <div id="topbar">
-  <div class="logo">COMMAND<span> </span>CENTER <span style="font-size:12px;letter-spacing:1px">// WORKSPACE</span> <span class="blink" style="color:#555">_</span></div>
-  <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
-    <a href="https://ace-crm.up.railway.app" target="_blank" class="crm-btn">⬡ ACE CRM</a>
-    <button class="key-btn" onclick="changeKey()">⚿ KEY</button>
-  </div>
+  <div class="logo">COMMAND <span>CENTER</span> <span class="blink" style="color:#555;font-size:14px;">_</span></div>
   <div class="top-stats">
-    <div class="stat-pill">
-      <label>MODEL</label>
-      <span class="val" id="model-display">sonnet-4.5</span>
-    </div>
-    <div class="stat-pill">
-      <label>SEARCH</label>
-      <span class="val" id="search-display">OFF</span>
-    </div>
-    <div class="stat-pill">
-      <label>MSGS</label>
-      <span class="val" id="msg-count">0</span>
-    </div>
-    <div class="stat-pill" id="token-stat">
-      <label>CTX</label>
-      <span class="val" id="token-display">0</span>
-      <div id="token-bar"><div id="token-bar-fill"></div></div>
-      <span id="token-pct" style="font-size:9px;color:var(--faint)">0%</span>
-    </div>
-    <div class="stat-pill">
-      <label>PROJ</label>
-      <span class="val" id="active-proj-display">none</span>
-    </div>
+    <div class="sp"><label>MODEL</label><span class="v" id="mdisplay">sonnet-4.5</span></div>
+    <div class="sp"><label>SEARCH</label><span class="v" id="sdisplay">OFF</span></div>
+    <div class="sp"><label>MSGS</label><span class="v" id="mcnt">0</span></div>
+    <div class="sp" id="tstat"><label>CTX</label><span class="v" id="tdisplay">0</span><div id="tbar"><div id="tbf"></div></div><span id="tpct" style="font-size:9px;color:var(--faint)">0%</span></div>
+    <div class="sp"><label>PROJ</label><span class="v" id="pdisplay">none</span></div>
   </div>
+  <a href="https://all-pro-pg-crm-production.up.railway.app" target="_blank" class="tbtn" style="text-decoration:none;">⬡ ACE CRM</a>
+  <button class="tbtn" onclick="changeKey()">⚿ KEY</button>
 </div>
 
 <!-- MAIN -->
@@ -706,1119 +329,677 @@ body::after {
 
   <!-- SIDEBAR -->
   <div id="sidebar">
-    <div id="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">◀</div>
-    <div class="sidebar-content">
-
-      <!-- Bot status -->
-      <div id="bot-status-list">
-        <div class="bot-row">
-          <span class="status-light online" id="light-fortus"></span>
-          <span class="bot-name">FORTUS</span>
-          <span class="bot-status-txt" id="txt-fortus">online</span>
-        </div>
-        <div class="bot-row">
-          <span class="status-light online" id="light-torque"></span>
-          <span class="bot-name">TORQUE</span>
-          <span class="bot-status-txt" id="txt-torque">online</span>
-        </div>
-        <div class="bot-row">
-          <span class="status-light online" id="light-tri"></span>
-          <span class="bot-name">TRI-CHANNEL</span>
-          <span class="bot-status-txt" id="txt-tri">online</span>
-        </div>
+    <div id="stog" onclick="toggleSidebar()">◀</div>
+    <div class="sc">
+      <div id="bot-list">
+        <div class="br"><span class="sl online" id="sl-fortus"></span><span class="bn">FORTUS</span><span class="bs" id="st-fortus">online</span></div>
+        <div class="br"><span class="sl online" id="sl-torque"></span><span class="bn">TORQUE</span><span class="bs" id="st-torque">online</span></div>
+        <div class="br"><span class="sl online" id="sl-tri"></span><span class="bn">TRI-CHANNEL</span><span class="bs" id="st-tri">online</span></div>
       </div>
-
-      <!-- Projects -->
-      <div class="panel-header">
-        <span>Projects</span>
-        <button onclick="toggleNewProject()">+ NEW</button>
-      </div>
-      <div id="project-list"></div>
-      <div id="new-project-form">
+      <div class="ph"><span>PROJECTS</span><button onclick="toggleNPF()">+ NEW</button></div>
+      <div id="proj-list"></div>
+      <div id="npf">
         <input id="np-name" placeholder="Project name..." maxlength="30" />
         <textarea id="np-desc" placeholder="Description / goal..." rows="2"></textarea>
-        <input id="np-url1" placeholder="Link 1 (e.g. railway URL)..." />
-        <input id="np-url2" placeholder="Link 2 (e.g. GitHub URL)..." />
-        <input id="np-url3" placeholder="Link 3 (optional)..." />
-        <div class="form-btns">
-          <button onclick="toggleNewProject()">Cancel</button>
-          <button class="confirm" onclick="createProject()">Create</button>
+        <input id="np-u1" placeholder="Link 1 (Railway URL)..." />
+        <input id="np-u2" placeholder="Link 2 (GitHub URL)..." />
+        <input id="np-u3" placeholder="Link 3 (optional)..." />
+        <div class="fbtns">
+          <button onclick="toggleNPF()">Cancel</button>
+          <button class="ok" onclick="createProj()">Create</button>
         </div>
       </div>
-
     </div>
   </div>
 
-  <div class="resize-handle" id="rh-left"></div>
+  <div class="rh" id="rhl"></div>
 
-  <!-- CHAT COLUMN -->
+  <!-- CHAT -->
   <div id="chat-col">
-
-    <!-- Channel tabs -->
-    <div id="channel-tabs">
-      <div class="ch-tab active" id="tab-fortus" onclick="switchChannel('fortus')">
-        <span class="status-light online" id="tabl-fortus"></span>
-        <div class="ch-label">
-          <span class="ch-name">FORTUS</span>
-          <span class="ch-sub">You + Fortus</span>
-        </div>
-        <span class="unread" id="unread-fortus">0</span>
+    <div id="ch-tabs">
+      <div class="ct active" id="tab-fortus" onclick="switchCh('fortus')">
+        <span class="sl online" id="tsl-fortus"></span>
+        <div class="cl"><span class="cn">FORTUS</span><span class="cs">You + Fortus</span></div>
+        <span class="unread" id="ur-fortus">0</span>
       </div>
-      <div class="ch-tab" id="tab-torque" onclick="switchChannel('torque')">
-        <span class="status-light online" id="tabl-torque"></span>
-        <div class="ch-label">
-          <span class="ch-name">TORQUE</span>
-          <span class="ch-sub">You + Torque</span>
-        </div>
-        <span class="unread" id="unread-torque">0</span>
+      <div class="ct" id="tab-torque" onclick="switchCh('torque')">
+        <span class="sl online" id="tsl-torque"></span>
+        <div class="cl"><span class="cn">TORQUE</span><span class="cs">You + Torque</span></div>
+        <span class="unread" id="ur-torque">0</span>
       </div>
-      <div class="ch-tab" id="tab-tri" onclick="switchChannel('tri')">
-        <span class="status-light online" id="tabl-tri"></span>
-        <div class="ch-label">
-          <span class="ch-name">TRI-CHANNEL</span>
-          <span class="ch-sub">You + Fortus + Torque</span>
-        </div>
-        <span class="unread" id="unread-tri">0</span>
+      <div class="ct" id="tab-tri" onclick="switchCh('tri')">
+        <span class="sl online" id="tsl-tri"></span>
+        <div class="cl"><span class="cn">TRI-CHANNEL</span><span class="cs">You + Fortus + Torque</span></div>
+        <span class="unread" id="ur-tri">0</span>
       </div>
     </div>
 
-    <!-- Controls -->
-    <div id="chat-ctrlbar">
-      <select id="model-select" onchange="setModel(this.value)">
+    <div id="ctrl-bar">
+      <select id="msel" onchange="setModel(this.value)">
+        <option value="claude-sonnet-4-5">Sonnet 4.5</option>
         <option value="claude-opus-4-5">Opus 4.5</option>
-        <option value="claude-sonnet-4-5" selected>Sonnet 4.5</option>
         <option value="claude-haiku-4-5">Haiku 4.5</option>
       </select>
-      <button class="ctrl-btn" id="search-toggle" onclick="toggleSearch()">⌖ Web Search</button>
-      <button class="ctrl-btn" id="persona-toggle" onclick="togglePersona()">⚙ Persona</button>
-      <button class="ctrl-btn" onclick="exportSession()">↓ Export</button>
-      <button class="ctrl-btn" onclick="clearChat()">✕ Clear</button>
-      <div id="proj-label">NO PROJECT</div>
+      <button class="cb" id="srch-btn" onclick="toggleSearch()">⌖ Web Search</button>
+      <button class="cb" id="pers-btn" onclick="togglePersona()">⚙ Persona</button>
+      <button class="cb" onclick="exportSess()">↓ Export</button>
+      <button class="cb" onclick="clearCh()">✕ Clear</button>
+      <div id="plabel">NO PROJECT</div>
     </div>
 
-    <!-- Cost bar -->
     <div id="cost-bar">
-      <div class="cost-item"><span class="cost-label">SESSION TOKENS:</span><span class="cost-val" id="cost-tokens">0</span></div>
-      <div class="cost-item"><span class="cost-label">EST. COST:</span><span class="cost-val" id="cost-usd">$0.000</span></div>
-      <div class="cost-item"><span class="cost-label">FORTUS:</span><span class="cost-val" id="cost-fortus">$0.000</span></div>
-      <div class="cost-item"><span class="cost-label">TORQUE:</span><span class="cost-val" id="cost-torque">$0.000</span></div>
-      <div class="cost-item"><span class="cost-label">TRI:</span><span class="cost-val" id="cost-tri">$0.000</span></div>
+      <div class="ci"><span class="cl">TOKENS:</span><span class="cv" id="c-tok">0</span></div>
+      <div class="ci"><span class="cl">COST:</span><span class="cv" id="c-usd">$0.0000</span></div>
+      <div class="ci"><span class="cl">FORTUS:</span><span class="cv" id="c-f">$0.0000</span></div>
+      <div class="ci"><span class="cl">TORQUE:</span><span class="cv" id="c-t">$0.0000</span></div>
+      <div class="ci"><span class="cl">TRI:</span><span class="cv" id="c-tri">$0.0000</span></div>
     </div>
 
-    <!-- 3 channel windows -->
-    <div class="chat-channel ch-fortus active" id="ch-fortus">
-      <div class="chat-window" id="win-fortus"></div>
-    </div>
-    <div class="chat-channel ch-torque" id="ch-torque">
-      <div class="chat-window" id="win-torque"></div>
-    </div>
-    <div class="chat-channel ch-tri" id="ch-tri">
-      <div class="chat-window" id="win-tri"></div>
-    </div>
+    <div class="ch-win ch-fortus active" id="cw-fortus"><div class="msgs" id="msgs-fortus"></div></div>
+    <div class="ch-win ch-torque" id="cw-torque"><div class="msgs" id="msgs-torque"></div></div>
+    <div class="ch-win ch-tri"    id="cw-tri"><div class="msgs" id="msgs-tri"></div></div>
 
-    <!-- Input -->
     <div id="input-area">
       <div id="persona-bar">
         <label>// SYSTEM PROMPT</label>
-        <textarea id="system-prompt-input" rows="3" placeholder="You are Fortus, a senior engineer..."></textarea>
-        <div class="persona-btns">
+        <textarea id="spi" rows="3" placeholder="You are Fortus, a senior engineer..."></textarea>
+        <div class="pbtns">
           <button onclick="clearPersona()">Clear</button>
-          <button class="apply" onclick="applyPersona()">Apply Persona</button>
+          <button onclick="applyPersona()">Apply</button>
         </div>
       </div>
-      <div id="img-preview-strip" style="display:none;margin-bottom:6px;display:none;gap:6px;flex-wrap:wrap;"></div>
-<div id="channel-indicator">
-        <span class="ch-dot" id="input-ch-dot"></span>
-        <span id="input-ch-label">FORTUS CHANNEL</span>
-      </div>
-      <div id="cmd-line">
-        <span class="prompt-prefix">&gt;_</span>
-        <div style="position:relative;flex:1;display:flex;">
-          <div id="slash-dropdown"></div>
-          <textarea id="user-input" placeholder="Message or /help..." rows="1"
-            onkeydown="handleKey(event)" oninput="handleInput(this)"></textarea>
+      <div id="img-strip" id="img-strip"></div>
+      <div id="chi"><span class="cd" id="chi-dot"></span><span id="chi-lbl">FORTUS CHANNEL</span></div>
+      <div id="cmdline">
+        <span class="pfx">&gt;_</span>
+        <div style="position:relative;flex:1;display:flex;align-items:flex-end;">
+          <div id="slash-dd"></div>
+          <textarea id="ui" placeholder="Message or /help..." rows="1" onkeydown="handleKey(event)" oninput="handleInput(this)"></textarea>
         </div>
-        <button id="img-btn" title="Attach image" onclick="document.getElementById('img-input').click()" style="background:var(--bg3);border:1px solid var(--border);color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:16px;padding:2px 10px;cursor:pointer;flex-shrink:0;transition:all 0.15s;z-index:1;" onmouseover="this.style.color='var(--white)'" onmouseout="this.style.color='var(--dim)'">⊕</button>
-<input type="file" id="img-input" accept="image/*" style="display:none;" onchange="handleImageAttach(event)">
-<button id="send-btn" onclick="sendMessage()">SEND</button>
+        <button id="img-btn" onclick="document.getElementById('img-file').click()" title="Attach image">⊕</button>
+        <input type="file" id="img-file" accept="image/*" multiple style="display:none;" onchange="handleImgFile(event)">
+        <button id="send-btn" onclick="doSend()">SEND</button>
       </div>
-      <div class="cmd-hint">/help &nbsp;/model &nbsp;/search &nbsp;/persona &nbsp;/summarize &nbsp;/progress &nbsp;/clear &nbsp;/export &nbsp;/tokens &nbsp;/review</div>
+      <div class="hint">/help &nbsp;/model &nbsp;/search &nbsp;/persona &nbsp;/summarize &nbsp;/progress &nbsp;/clear &nbsp;/export &nbsp;/tokens &nbsp;/review &nbsp;/debate</div>
     </div>
   </div>
 
-  <div class="resize-handle" id="rh-right"></div>
+  <div class="rh" id="rhr"></div>
 
   <!-- RIGHT PANEL -->
-  <div id="right-panel">
-    <div id="file-tabs">
-      <div class="ftab active" onclick="switchTab('files')">Files</div>
-      <div class="ftab" onclick="switchTab('links')">Links</div>
-      <div class="ftab" onclick="switchTab('progress')">Progress</div>
+  <div id="rpanel">
+    <div id="rtabs">
+      <div class="rt active" onclick="switchRTab('files')">Files</div>
+      <div class="rt" onclick="switchRTab('links')">Links</div>
+      <div class="rt" onclick="switchRTab('progress')">Progress</div>
     </div>
-    <div class="tab-panel active" id="tab-files">
-      <div id="file-drop-zone" onclick="document.getElementById('file-input').click()"
-           ondrop="handleFileDrop(event)" ondragover="event.preventDefault()">
-        <input type="file" id="file-input" multiple
-          accept=".txt,.md,.js,.ts,.jsx,.tsx,.py,.html,.css,.json,.csv,.yml,.yaml,.sh,.sql,.php,.rb,.go,.rs,.cpp,.c,.h,.java,.log"
-          onchange="handleFileSelect(event)">
-        ⊕ DROP FILES OR CLICK<br>
-        <span style="font-size:9px;opacity:0.5">code, docs, configs...</span>
+    <div class="tp active" id="tp-files">
+      <div id="fdrop" onclick="document.getElementById('ffile').click()" ondrop="handleFDrop(event)" ondragover="event.preventDefault()">
+        <input type="file" id="ffile" multiple accept=".txt,.md,.js,.ts,.jsx,.tsx,.py,.html,.css,.json,.csv,.yml,.yaml,.sh,.sql,.rb,.go,.rs" onchange="handleFSel(event)" style="display:none;">
+        ⊕ DROP FILES OR CLICK
       </div>
-      <div id="file-list"></div>
-      <div id="file-preview">// Select a file to preview</div>
+      <div id="flist"></div>
+      <div id="fprev">// Select a file to preview</div>
     </div>
-    <div class="tab-panel" id="tab-links">
-      <div id="links-list" style="flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px;">
-        <div class="no-data">No projects with links yet.</div>
-      </div>
-    </div>
-    <div class="tab-panel" id="tab-progress">
-      <div id="progress-list"><div class="no-data">No progress reports.<br>Use /progress to generate one.</div></div>
-    </div>
+    <div class="tp" id="tp-links"><div id="links-list"><div class="nodata">No links yet. Add URLs when creating projects.</div></div></div>
+    <div class="tp" id="tp-progress"><div id="prog-list"><div class="nodata">No progress reports.<br>Use /progress to generate one.</div></div></div>
   </div>
-
 </div>
 
-<!-- Modal -->
-<div id="modal-overlay" onclick="closeModal()">
-  <div id="modal-box" onclick="event.stopPropagation()">
-    <h3 id="modal-title">INFO</h3>
-    <div class="modal-content" id="modal-content"></div>
+<!-- MOBILE BAR -->
+<div id="mbar">
+  <button onclick="toggleMob('sidebar')">☰ PROJ</button>
+  <button onclick="toggleMob('rpanel')">⊕ FILES</button>
+  <button onclick="window.open('https://all-pro-pg-crm-production.up.railway.app','_blank')">⬡ CRM</button>
+  <button onclick="changeKey()">⚿ KEY</button>
+</div>
+
+<!-- MODAL -->
+<div id="modal" onclick="closeModal()">
+  <div id="mbox" onclick="event.stopPropagation()">
+    <h3 id="mtitle">INFO</h3>
+    <div class="mc" id="mcont"></div>
     <button onclick="closeModal()">[ CLOSE ]</button>
   </div>
 </div>
 
-<script>
-// ── CHANNEL CONFIG ──────────────────────────────────────
-const CHANNELS = {
-  fortus: {
-    name: 'FORTUS',
-    persona: 'You are Fortus, a sharp and direct AI assistant. You are technical, concise, and don\'t waste words. You help with code, architecture, and strategy. Sign responses as "— Fortus".',
-    color: '#a0c4ff',
-  },
-  torque:  {
-    name: 'TORQUE',
-    persona: 'You are Torque, a creative and analytical AI assistant. You think laterally, offer fresh perspectives, and are great at problem-solving and brainstorming. Sign responses as "— Torque".',
-    color: '#ffd6a5',
-  },
-  tri: {
-    name: 'TRI-CHANNEL',
-    persona: 'This is a group session with both Fortus and Torque. Respond as both: first give Fortus\'s take (direct, technical), then Torque\'s take (creative, lateral). Label each clearly.',
-    color: '#caffbf',
-  },
-};
-
-const MAX_CTX = 200000;
-
-// Per-channel state
-const chState = {
-  fortus: { messages: [], tokens: 0, status: 'online' },
-  torque:  { messages: [], tokens: 0, status: 'online' },
-  tri:    { messages: [], tokens: 0, status: 'online' },
-};
-
-let state = {
-  model: 'claude-sonnet-4-5',
-  searchEnabled: false,
-  systemPrompt: '',          // overrides channel persona if set
-  activeChannel: 'fortus',
-  projects: [],
-  activeProject: null,
-  files: [],
-  progressCards: [],
-  msgCount: 0,
-  sidebarCollapsed: false,
-};
-
-const MODELS = {
-  'claude-opus-4-5':  'opus-4.5',
-  'claude-sonnet-4-5': 'sonnet-4.5',
-  'claude-haiku-4-5': 'haiku-4.5',
-};
-
-const SLASH_CMDS = [
-  {cmd:'/help',      desc:'Show all commands'},
-  {cmd:'/model',     desc:'/model sonnet|opus|haiku'},
-  {cmd:'/search',    desc:'Toggle web search'},
-  {cmd:'/persona',   desc:'Open persona editor'},
-  {cmd:'/clear',     desc:'Clear current channel'},
-  {cmd:'/clearall',  desc:'Clear all channels'},
-  {cmd:'/export',    desc:'Export session'},
-  {cmd:'/tokens',    desc:'Token usage stats'},
-  {cmd:'/summarize', desc:'Summarize loaded files'},
-  {cmd:'/progress',  desc:'Generate progress report'},
-  {cmd:'/review',    desc:'Review all loaded files'},
-  {cmd:'/projects',  desc:'List projects'},
-  {cmd:'/file',      desc:'/file <name> — ask AI about file'},
-  {cmd:'/status',    desc:'Show all bot statuses'},
-];
-
-// ── STORAGE ─────────────────────────────────────────────
-async function saveState() {
-  try {
-    await window.storage.set('ws-state-v2', JSON.stringify({
-      projects: state.projects,
-      activeProject: state.activeProject,
-      systemPrompt: state.systemPrompt,
-      model: state.model,
-      progressCards: state.progressCards,
-      sidebarCollapsed: state.sidebarCollapsed,
-    }));
-  } catch(e) {}
-}
-
-async function loadState() {
-  try {
-    const r = await window.storage.get('ws-state-v2');
-    if (r) {
-      const d = JSON.parse(r.value);
-      Object.assign(state, d);
-    }
-  } catch(e) {}
-}
-
-// ── BOOT ─────────────────────────────────────────────────
-async function boot() {
-  await loadState();
-  
-  // Auto-seed projects from Fortus memory if none exist
-  if (state.projects.length === 0) {
-    state.projects = [
-      {
-        name: 'ACE AUTO HAIL REPAIR',
-        desc: 'Main shop CRM. pw: aceauto2026. Active jobs: RO1001 Andy Gutierrez, RO1002 Kevin Meredith, RO1003 David Berry (URGENT - Hellcat wheels), RO1004 Erick Ramirez (RAV4 total loss). Email: aceautohailrepair@gmail.com',
-        urls: ['https://all-pro-pg-crm-production.up.railway.app', 'https://github.com/FortusStark/Ace-Auto-Hail-Repair-CRM'],
-        created: Date.now()
-      },
-      {
-        name: 'ALL-PRO PROPERTIES',
-        desc: 'CRM with Prince Stokes. pw: allpro2026. Services: Fences, Concrete, Patios, Paint/Seal. $15-30/sqft stamped concrete. SOS compliance due March 3 (EIN, labor posters, certificate). Prince: princestokes@gmail.com',
-        urls: ['https://romantic-connection-production-9950.up.railway.app'],
-        created: Date.now()
-      },
-      {
-        name: 'DENVER DENTS',
-        desc: 'Beta test for DentOps/Noah pitch. pw: denverdents2026. Owner: Lane (574-904-6900). PM: Abbey Hiett (720-775-5817). Track improvement projections for Noah pitch.',
-        urls: ['https://generous-courage-production.up.railway.app'],
-        created: Date.now()
-      },
-      {
-        name: 'COMMAND CENTER',
-        desc: 'AI workspace with Fortus + Torque. GitHub Pages hosted. Fix Torque 409 errors, add voice input, customer portal, meeting recorder.',
-        urls: ['https://fortusstark.github.io/cc-workspace/', 'https://github.com/FortusStark/cc-workspace'],
-        created: Date.now()
-      },
-      {
-        name: 'TORQUE WORKSPACE',
-        desc: 'Torque bot @Torquethebuilderbot. Workspace at ~/torque-workspace/. BROKEN - 409 errors. Fix separately. OpenClaw skills at ~/.openclaw/skills/',
-        urls: [],
-        created: Date.now()
-      },
-      {
-        name: 'ACE OPS STRATEGY',
-        desc: 'DentOps writes estimates, Fortus handles everything else. Pipeline: Denver Dents beta → pitch Noah → Keith Werkheiser → Sensei (global) → Mansoor (reseller). Buy & automate retiring businesses via seller financing.',
-        urls: [],
-        created: Date.now()
-      },
-    ];
-    await saveState();
-  }
-  renderProjects();
-  renderProgress();
-  document.getElementById('model-select').value = state.model;
-  document.getElementById('model-display').textContent = MODELS[state.model] || 'sonnet-4.5';
-  if (state.systemPrompt) document.getElementById('system-prompt-input').value = state.systemPrompt;
-  if (state.sidebarCollapsed) {
-    document.getElementById('sidebar').classList.add('collapsed');
-    document.getElementById('sidebar-toggle').textContent = '▶';
-  }
-  updateInputIndicator();
-
-  // Boot each channel
-  const lines = [
-    `CLAUDE.SYS v2.0 — THREE-CHANNEL WORKSPACE`,
-    `Model: ${MODELS[state.model]} | Projects: ${state.projects.length}`,
-    `Type /help for commands.`,
-  ];
-  ['fortus','torque','tri'].forEach(ch => {
-    lines.forEach((l,i) => setTimeout(() => addMsg(ch,'sys',l), i*55));
-    setTimeout(() => addMsg(ch,'sys',`${CHANNELS[ch].name} is online and ready.`), lines.length*55+80);
-  });
-}
-
-// ── STATUS LIGHTS ────────────────────────────────────────
-function setStatus(ch, status) {
-  // status: 'online' | 'working' | 'offline' | 'idle'
-  chState[ch].status = status;
-  const labels = { online:'online', working:'working...', offline:'offline', idle:'idle' };
-  const lightIds = [`light-${ch}`, `tabl-${ch}`];
-  lightIds.forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.className = `status-light ${status}`;
-  });
-  const txt = document.getElementById(`txt-${ch}`);
-  if (txt) txt.textContent = labels[status] || status;
-}
-
-// ── CHANNEL SWITCH ───────────────────────────────────────
-function switchChannel(ch) {
-  state.activeChannel = ch;
-  document.querySelectorAll('.ch-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.chat-channel').forEach(c => c.classList.remove('active'));
-  document.getElementById(`tab-${ch}`).classList.add('active');
-  document.getElementById(`ch-${ch}`).classList.add('active');
-  // clear unread
-  const badge = document.getElementById(`unread-${ch}`);
-  badge.textContent = '0';
-  badge.classList.remove('has');
-  updateInputIndicator();
-  updateTokenDisplay(ch);
-}
-
-function updateInputIndicator() {
-  const ch = state.activeChannel;
-  const colors = { fortus:'#a0c4ff', torque:'#ffd6a5', tri:'#caffbf' };
-  document.getElementById('input-ch-dot').style.background = colors[ch] || '#ccc';
-  document.getElementById('input-ch-label').textContent = CHANNELS[ch].name + ' CHANNEL';
-}
-
-function addUnread(ch) {
-  if (ch === state.activeChannel) return;
-  const badge = document.getElementById(`unread-${ch}`);
-  const n = (parseInt(badge.textContent) || 0) + 1;
-  badge.textContent = n;
-  badge.classList.add('has');
-}
-
-// ── MESSAGES ─────────────────────────────────────────────
-function addMsg(ch, type, text) {
-  const win = document.getElementById(`win-${ch}`);
-  const div = document.createElement('div');
-  div.className = `msg ${type}`;
-  const ts = new Date().toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  const whoMap = {user:'YOU', ai: CHANNELS[ch]?.name || 'AI', sys:'SYS', err:'ERR'};
-  const isAI = type === 'ai';
-
-  // status light in message header for AI messages
-  const lightHtml = isAI ? `<span class="status-light ${chState[ch]?.status || 'online'}" style="width:7px;height:7px;"></span>` : '';
-
-  div.innerHTML = `
-    <div class="msg-header">
-      <div class="who">${lightHtml}<span>${whoMap[type] || type.toUpperCase()}</span></div>
-      <span class="ts">${ts}</span>
-    </div>
-    <div class="msg-body">${escHtml(text)}</div>
-  `;
-  win.appendChild(div);
-  win.scrollTop = win.scrollHeight;
-  state.msgCount++;
-  document.getElementById('msg-count').textContent = state.msgCount;
-  if (type !== 'sys') addUnread(ch);
-  return div;
-}
-
-function addTyping(ch) {
-  const win = document.getElementById(`win-${ch}`);
-  const div = document.createElement('div');
-  div.className = 'msg ai';
-  div.id = `typing-${ch}`;
-  div.innerHTML = `
-    <div class="msg-header">
-      <div class="who">
-        <span class="status-light working" style="width:7px;height:7px;"></span>
-        <span>${CHANNELS[ch].name}</span>
-      </div>
-    </div>
-    <div class="msg-body"><span class="typing-dots"><span>.</span><span>.</span><span>.</span></span></div>
-  `;
-  win.appendChild(div);
-  win.scrollTop = win.scrollHeight;
-}
-
-function removeTyping(ch) {
-  const el = document.getElementById(`typing-${ch}`);
-  if (el) el.remove();
-}
-
-// ── TOKEN DISPLAY ────────────────────────────────────────
-function updateTokenDisplay(ch) {
-  const tokens = chState[ch || state.activeChannel]?.tokens || 0;
-  const pct = Math.min(100, Math.round(tokens / MAX_CTX * 100));
-  document.getElementById('token-display').textContent = tokens.toLocaleString();
-  document.getElementById('token-pct').textContent = pct + '%';
-  document.getElementById('token-bar-fill').style.width = pct + '%';
-  const fill = document.getElementById('token-bar-fill');
-  fill.style.background = pct > 80 ? 'var(--red)' : pct > 50 ? 'var(--amber)' : 'var(--accent)';
-  const stat = document.getElementById('token-stat');
-  stat.className = 'stat-pill' + (pct > 80 ? ' hot' : pct > 50 ? ' warn' : '');
-}
-
-// ── PROJECTS ─────────────────────────────────────────────
-function renderProjects() {
-  const el = document.getElementById('project-list');
-  if (!state.projects.length) {
-    el.innerHTML = '<div class="no-data" style="padding:12px;">No projects.<br>Click + NEW.</div>';
-    return;
-  }
-  el.innerHTML = state.projects.map((p,i) => {
-    const urls = p.urls || [];
-    const linkHtml = urls.map(u => {
-      const label = u.replace(/^https?:\/\//, '').split('/')[0];
-      return `<a href="${escHtml(u)}" target="_blank" onclick="event.stopPropagation()" 
-        style="display:inline-block;font-size:9px;color:var(--fortus-c);text-decoration:none;border:1px solid var(--border);padding:1px 5px;margin-top:3px;margin-right:3px;"
-        onmouseover="this.style.borderColor='var(--border-hi)'" onmouseout="this.style.borderColor='var(--border)'"
-      >⬡ ${escHtml(label)}</a>`;
-    }).join('');
-    return `
-    <div class="project-item ${state.activeProject===i?'active':''}" onclick="selectProject(${i})">
-      <div class="proj-name">${escHtml(p.name)}</div>
-      <div class="proj-meta">${escHtml((p.desc||'').slice(0,40))}${(p.desc||'').length>40?'...':''}</div>
-      ${linkHtml ? `<div style="margin-top:4px;">${linkHtml}</div>` : ''}
-      <span class="proj-badge">${state.activeProject===i?'ACTIVE':'IDLE'}</span>
-    </div>`;
-  }).join('');
-  const proj = state.activeProject !== null ? state.projects[state.activeProject]?.name : null;
-  document.getElementById('proj-label').textContent = proj ? `// ${proj}` : 'NO PROJECT';
-  document.getElementById('active-proj-display').textContent = proj ? proj.slice(0,10) : 'none';
-}
-
-function toggleNewProject() {
-  document.getElementById('new-project-form').classList.toggle('open');
-}
-
-function createProject() {
-  const name = document.getElementById('np-name').value.trim();
-  if (!name) return;
-  const urls = [
-    document.getElementById('np-url1').value.trim(),
-    document.getElementById('np-url2').value.trim(),
-    document.getElementById('np-url3').value.trim(),
-  ].filter(Boolean);
-  state.projects.push({ name, desc: document.getElementById('np-desc').value.trim(), urls, created: Date.now() });
-  document.getElementById('np-name').value = '';
-  document.getElementById('np-desc').value = '';
-  document.getElementById('np-url1').value = '';
-  document.getElementById('np-url2').value = '';
-  document.getElementById('np-url3').value = '';
-  toggleNewProject();
-  renderProjects();
-  saveState();
-  addMsg(state.activeChannel, 'sys', `Project "${name}" created.`);
-}
-
-function selectProject(i) {
-  state.activeProject = i;
-  renderProjects();
-  saveState();
-  addMsg(state.activeChannel, 'sys', `Active project: ${state.projects[i].name}`);
-}
-
-// ── FILES ─────────────────────────────────────────────────
-function handleFileDrop(e) { e.preventDefault(); [...e.dataTransfer.files].forEach(readFile); }
-function handleFileSelect(e) { [...e.target.files].forEach(readFile); e.target.value=''; }
-
-function readFile(file) {
-  const reader = new FileReader();
-  reader.onload = ev => {
-    const content = ev.target.result;
-    const idx = state.files.findIndex(f=>f.name===file.name);
-    const entry = { name:file.name, content, size:file.size, active:false };
-    if (idx>=0) state.files[idx]=entry; else state.files.push(entry);
-    renderFileList();
-    addMsg(state.activeChannel,'sys',`Loaded: ${file.name} (${formatBytes(file.size)})`);
-    switchTab('files');
-  };
-  reader.readAsText(file);
-}
-
-function renderFileList() {
-  const el = document.getElementById('file-list');
-  el.innerHTML = state.files.map((f,i) => `
-    <div class="file-item ${f.active?'active':''}">
-      <span class="fname" onclick="previewFile(${i})" title="${escHtml(f.name)}">${escHtml(f.name)}</span>
-      <div class="file-item-actions">
-        <button onclick="sendFileToChat(${i})" title="Ask AI">⌨</button>
-        <button onclick="removeFile(${i})" title="Remove">✕</button>
-      </div>
-    </div>
-  `).join('') || '';
-}
-
-function previewFile(i) {
-  state.files.forEach((f,j)=>f.active=j===i);
-  renderFileList();
-  const f = state.files[i];
-  document.getElementById('file-preview').innerHTML =
-    `<div style="color:var(--text);margin-bottom:4px;">${escHtml(f.name)}</div>` +
-    `<pre style="white-space:pre-wrap;font-size:10px;color:var(--dim);">${escHtml(f.content.slice(0,500))}${f.content.length>500?'\n...':''}</pre>`;
-}
-
-function removeFile(i) {
-  const name = state.files[i].name;
-  state.files.splice(i,1);
-  renderFileList();
-  addMsg(state.activeChannel,'sys',`Removed: ${name}`);
-}
-
-function sendFileToChat(i) {
-  const f = state.files[i];
-  const c = f.content.length>8000 ? f.content.slice(0,8000)+'\n\n[truncated]' : f.content;
-  sendToAPI(state.activeChannel, `Review this file and provide insights:\n\n**${f.name}**\n\`\`\`\n${c}\n\`\`\``);
-}
-
-// ── TABS ──────────────────────────────────────────────────
-function switchTab(tab) {
-  document.querySelectorAll('.ftab').forEach((t,i)=>t.classList.toggle('active',['files','links','progress'][i]===tab));
-  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id===`tab-${tab}`));
-  if (tab === 'links') renderLinks();
-}
-
-function renderLinks() {
-  const el = document.getElementById('links-list');
-  const projects = state.projects.filter(p => p.urls && p.urls.length);
-  if (!projects.length) {
-    el.innerHTML = '<div class="no-data">No links yet.<br>Add URLs when creating a project.</div>';
-    return;
-  }
-  el.innerHTML = projects.map((p,i) => `
-    <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);padding:8px 10px;">
-      <div style="font-size:11px;color:var(--white);margin-bottom:6px;">${escHtml(p.name)}</div>
-      ${(p.urls||[]).map(u => {
-        const label = u.replace(/^https?:\/\//, '');
-        return `<a href="${escHtml(u)}" target="_blank" 
-          style="display:block;font-size:11px;color:var(--fortus-c);text-decoration:none;padding:4px 6px;border:1px solid var(--border);margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
-          onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='none'"
-          title="${escHtml(u)}"
-        >⬡ ${escHtml(label)}</a>`;
-      }).join('')}
-    </div>
-  `).join('');
-}
-
-// ── SIDEBAR ───────────────────────────────────────────────
-function toggleSidebar() {
-  const sb = document.getElementById('sidebar');
-  const tog = document.getElementById('sidebar-toggle');
-  state.sidebarCollapsed = !state.sidebarCollapsed;
-  sb.classList.toggle('collapsed', state.sidebarCollapsed);
-  tog.textContent = state.sidebarCollapsed ? '▶' : '◀';
-  saveState();
-}
-
-// ── CONTROLS ──────────────────────────────────────────────
-function setModel(val) {
-  state.model = val;
-  document.getElementById('model-display').textContent = MODELS[val] || val;
-  addMsg(state.activeChannel,'sys',`Model: ${MODELS[val]}`);
-  saveState();
-}
-
-function toggleSearch() {
-  state.searchEnabled = !state.searchEnabled;
-  document.getElementById('search-toggle').classList.toggle('on', state.searchEnabled);
-  document.getElementById('search-display').textContent = state.searchEnabled ? 'ON' : 'OFF';
-  addMsg(state.activeChannel,'sys',`Web search: ${state.searchEnabled?'ON':'OFF'}`);
-}
-
-function togglePersona() {
-  const bar = document.getElementById('persona-bar');
-  bar.classList.toggle('open');
-  document.getElementById('persona-toggle').classList.toggle('on', bar.classList.contains('open'));
-}
-
-function applyPersona() {
-  state.systemPrompt = document.getElementById('system-prompt-input').value.trim();
-  // Reset all channel histories
-  ['fortus','torque','tri'].forEach(ch => chState[ch].messages = []);
-  togglePersona();
-  addMsg(state.activeChannel,'sys','Custom persona applied. All channels reset.');
-  saveState();
-}
-
-function clearPersona() {
-  state.systemPrompt = '';
-  document.getElementById('system-prompt-input').value = '';
-  addMsg(state.activeChannel,'sys','Persona cleared — using channel defaults.');
-  saveState();
-}
-
-function clearChat() {
-  const ch = state.activeChannel;
-  chState[ch].messages = [];
-  chState[ch].tokens = 0;
-  document.getElementById(`win-${ch}`).innerHTML = '';
-  updateTokenDisplay(ch);
-  addMsg(ch,'sys',`${CHANNELS[ch].name} channel cleared.`);
-}
-
-function exportSession() {
-  const ch = state.activeChannel;
-  const lines = [...document.querySelectorAll(`#win-${ch} .msg`)].map(m => {
-    const who  = m.querySelector('.who span:last-child')?.textContent || '';
-    const ts   = m.querySelector('.ts')?.textContent || '';
-    const body = m.querySelector('.msg-body')?.textContent || '';
-    return `[${who}] ${ts}\n${body}\n`;
-  });
-  const blob = new Blob([`# ${CHANNELS[ch].name} — Session Export\n${new Date().toISOString()}\n\n${lines.join('\n---\n\n')}`], {type:'text/markdown'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-  a.download = `${ch}-session-${Date.now()}.md`; a.click();
-  addMsg(ch,'sys','Session exported.');
-}
-
-// ── SEND ──────────────────────────────────────────────────
-// ── IMAGE ATTACHMENT ────────────────────────────────────
-let attachedImages = []; // [{base64, mediaType, previewUrl}]
-
-function handleImageAttach(e) {
-  const files = [...e.target.files];
-  files.forEach(file => {
-    if (!file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      const dataUrl = ev.target.result;
-      const base64 = dataUrl.split(',')[1];
-      const mediaType = file.type;
-      attachedImages.push({ base64, mediaType, previewUrl: dataUrl, name: file.name });
-      renderImagePreviews();
-    };
-    reader.readAsDataURL(file);
-  });
-  e.target.value = '';
-}
-
-function renderImagePreviews() {
-  const strip = document.getElementById('img-preview-strip');
-  if (!attachedImages.length) { strip.style.display='none'; return; }
-  strip.style.display = 'flex';
-  strip.innerHTML = attachedImages.map((img,i) => `
-    <div style="position:relative;display:inline-block;">
-      <img src="${img.previewUrl}" style="height:48px;width:48px;object-fit:cover;border:1px solid var(--border);" />
-      <button onclick="removeImage(${i})" style="position:absolute;top:-4px;right:-4px;background:var(--red);border:none;color:#fff;font-size:10px;width:16px;height:16px;cursor:pointer;padding:0;line-height:1;">✕</button>
-    </div>
-  `).join('');
-}
-
-function removeImage(i) {
-  attachedImages.splice(i,1);
-  renderImagePreviews();
-}
-
-async function sendMessage() {
-  const input = document.getElementById('user-input');
-  const text  = input.value.trim();
-  const hasImages = attachedImages.length > 0;
-  if (!text && !hasImages) return;
-  input.value = ''; input.style.height = 'auto';
-
-  if (text.startsWith('/') && !hasImages) { handleSlashCmd(text); return; }
-
-  const ch = state.activeChannel;
-  
-  // Show user message with image previews
-  const previewHtml = attachedImages.map(img => 
-    `<img src="${img.previewUrl}" style="max-height:80px;max-width:120px;border:1px solid var(--border);margin-top:4px;display:block;">`
-  ).join('');
-  
-  const msgDiv = addMsg(ch, 'user', text || '[image]');
-  if (previewHtml && msgDiv) {
-    msgDiv.querySelector('.msg-body').insertAdjacentHTML('beforeend', previewHtml);
-  }
-
-  const imgs = [...attachedImages];
-  attachedImages = [];
-  renderImagePreviews();
-
-  await sendToAPIWithImages(ch, text, imgs);
-}
-
-async function sendToAPIWithImages(ch, userText, images) {
-  if (!images || !images.length) return sendToAPI(ch, userText);
-  
-  const btn = document.getElementById('send-btn');
-  btn.disabled = true;
-  setStatus(ch, 'working');
-  addTyping(ch);
-
-  // Build content array with images
-  const contentArr = images.map(img => ({
-    type: 'image',
-    source: { type: 'base64', media_type: img.mediaType, data: img.base64 }
-  }));
-  contentArr.push({ type: 'text', text: userText || 'What do you see in this image?' });
-
-  // Build system prompt
-  let sys = state.systemPrompt || CHANNELS[ch].persona;
-  if (state.activeProject !== null) {
-    const p = state.projects[state.activeProject];
-    sys += ` You are working on: "${p.name}". ${p.desc||''}`;
-  }
-
-  // Build messages - use simple text for history, image content for this message
-  const historyMessages = chState[ch].messages.map(m => ({
-    role: m.role,
-    content: typeof m.content === 'string' ? m.content : (Array.isArray(m.content) ? m.content.filter(b=>b.type==='text').map(b=>b.text).join(' ') : String(m.content))
-  }));
-
-  const body = {
-    model: state.model,
-    max_tokens: 2048,
-    system: sys,
-    messages: [...historyMessages, { role: 'user', content: contentArr }]
-  };
-
-  if (state.searchEnabled) body.tools = [{ type:'web_search_20250305', name:'web_search' }];
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(()=>({}));
-      throw new Error(err.error?.message || `HTTP ${res.status}`);
-    }
-    const data = await res.json();
-    if (data.usage) { chState[ch].tokens = data.usage.input_tokens + data.usage.output_tokens; updateCostDisplay(ch, data.usage); }
-    const reply = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('
-');
-    removeTyping(ch);
-    addMsg(ch, 'ai', reply);
-    // Store as text in history
-    chState[ch].messages.push({ role: 'user', content: userText || '[image]' });
-    chState[ch].messages.push({ role: 'assistant', content: reply });
-    setStatus(ch, 'online');
-  } catch(e) {
-    removeTyping(ch);
-    addMsg(ch, 'err', `API Error: ${e.message}`);
-    setStatus(ch, 'offline');
-    setTimeout(() => setStatus(ch, 'online'), 5000);
-  }
-  btn.disabled = false;
-  updateTokenDisplay(ch);
-}
-
-async function sendToAPI(ch, userText) {
-  const btn = document.getElementById('send-btn');
-  btn.disabled = true;
-  setStatus(ch, 'working');
-  addTyping(ch);
-
-  let content = userText;
-  const activeFile = state.files.find(f=>f.active);
-  if (activeFile && !userText.includes(activeFile.name))
-    content = `[Active file: ${activeFile.name}]\n\n${userText}`;
-
-  chState[ch].messages.push({ role:'user', content });
-
-  try {
-    const reply = await callAPI(ch);
-    removeTyping(ch);
-    addMsg(ch,'ai', reply);
-    chState[ch].messages.push({ role:'assistant', content:reply });
-    setStatus(ch,'online');
-  } catch(e) {
-    removeTyping(ch);
-    addMsg(ch,'err',`API Error: ${e.message}`);
-    chState[ch].messages.pop();
-    setStatus(ch,'offline');
-    // auto-recover after 5s
-    setTimeout(()=>setStatus(ch,'online'), 5000);
-  }
-  btn.disabled = false;
-  updateTokenDisplay(ch);
-}
-
-
-
-// ── COST TRACKING ───────────────────────────────────────
-const MODEL_COSTS = {
-  'claude-sonnet-4-5': { input: 3.00, output: 15.00 },
-  'claude-opus-4-5':   { input: 15.00, output: 75.00 },
-  'claude-haiku-4-5':  { input: 0.80, output: 4.00 },
-};
-const sessionCosts = { fortus:0, torque:0, tri:0 };
-let sessionTokens = 0;
-
-function calcCost(model, inputTok, outputTok) {
-  const key = Object.keys(MODEL_COSTS).find(k => model.includes(k)) || 'claude-sonnet-4-5';
-  const rates = MODEL_COSTS[key];
-  return (inputTok / 1000000 * rates.input) + (outputTok / 1000000 * rates.output);
-}
-
-function updateCostDisplay(ch, usage) {
-  if (!usage) return;
-  const cost = calcCost(state.model, usage.input_tokens||0, usage.output_tokens||0);
-  sessionCosts[ch] = (sessionCosts[ch]||0) + cost;
-  sessionTokens += (usage.input_tokens||0) + (usage.output_tokens||0);
-  const total = Object.values(sessionCosts).reduce((a,b)=>a+b,0);
-  const el = (id) => document.getElementById(id);
-  if(el('cost-tokens')) el('cost-tokens').textContent = sessionTokens.toLocaleString();
-  if(el('cost-usd')) { el('cost-usd').textContent = '$'+total.toFixed(4); el('cost-usd').className='cost-val'+(total>1?' warn':''); }
-  if(el('cost-fortus')) el('cost-fortus').textContent = '$'+(sessionCosts.fortus||0).toFixed(4);
-  if(el('cost-torque')) el('cost-torque').textContent = '$'+(sessionCosts.torque||0).toFixed(4);
-  if(el('cost-tri')) el('cost-tri').textContent = '$'+(sessionCosts.tri||0).toFixed(4);
-}
-
-function changeKey() {
-  localStorage.removeItem('cc-api-key');
-  const ov = document.getElementById('key-overlay');
-  if(ov){ ov.style.display='flex'; document.getElementById('api-key-input').value=''; }
-}
-
-function toggleMobilePanel(id) {
-  const el = document.getElementById(id);
-  const isOpen = el.classList.contains('mobile-open');
-  document.getElementById('sidebar').classList.remove('mobile-open');
-  document.getElementById('right-panel').classList.remove('mobile-open');
-  if(!isOpen) el.classList.add('mobile-open');
-}
-
-async function callAPI(ch, overridePrompt) {
-  const messages = overridePrompt
-    ? [...chState[ch].messages, {role:'user',content:overridePrompt}]
-    : [...chState[ch].messages];
-
-  const body = {
-    model: state.model,
-    max_tokens: 2048,
-    messages,
-  };
-
-  // System prompt priority: custom > channel persona > project context
-  if (state.systemPrompt) {
-    body.system = state.systemPrompt;
-  } else {
-    let sys = CHANNELS[ch].persona;
-    if (state.activeProject !== null) {
-      const p = state.projects[state.activeProject];
-      sys += ` You are working on the project: "${p.name}". ${p.desc ? 'Goal: '+p.desc : ''}`;
-    }
-    body.system = sys;
-  }
-
-  if (state.searchEnabled) {
-    body.tools = [{ type:'web_search_20250305', name:'web_search' }];
-  }
-
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify(body),
-  });
-
-  if (!res.ok) {
-    const err = await res.json().catch(()=>({}));
-    throw new Error(err.error?.message || `HTTP ${res.status}`);
-  }
-
-  const data = await res.json();
-  if (data.usage) {
-    chState[ch].tokens = data.usage.input_tokens + data.usage.output_tokens;
-    updateCostDisplay(ch, data.usage);
-    updateTokenDisplay(ch);
-  }
-
-  return (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
-}
-
-// ── SLASH COMMANDS ────────────────────────────────────────
-const slashHandlers = {
-  '/help': () => showModal('COMMANDS', SLASH_CMDS.map(c=>`${c.cmd.padEnd(14)} — ${c.desc}`).join('\n')),
-  '/model': (args) => {
-    const map = {sonnet:'claude-sonnet-4-5',opus:'claude-opus-4-5',haiku:'claude-haiku-4-5'};
-    const k = args[0]?.toLowerCase();
-    if (map[k]) { setModel(map[k]); document.getElementById('model-select').value=map[k]; }
-    else addMsg(state.activeChannel,'sys','Usage: /model sonnet|opus|haiku');
-  },
-  '/search':    ()=>toggleSearch(),
-  '/persona':   ()=>togglePersona(),
-  '/clear':     ()=>clearChat(),
-  '/clearall':  ()=>{['fortus','torque','tri'].forEach(ch=>{chState[ch].messages=[];chState[ch].tokens=0;document.getElementById(`win-${ch}`).innerHTML='';});addMsg(state.activeChannel,'sys','All channels cleared.');},
-  '/export':    ()=>exportSession(),
-  '/tokens': ()=>{
-    const ch=state.activeChannel;
-    const t=chState[ch].tokens;
-    showModal('TOKEN USAGE',`Channel  : ${CHANNELS[ch].name}\nTokens   : ${t.toLocaleString()}\nMax ctx  : ${MAX_CTX.toLocaleString()}\nUsage    : ${Math.round(t/MAX_CTX*100)}%\n\nFortus   : ${chState.fortus.tokens.toLocaleString()}\nTorque    : ${chState.torque.tokens.toLocaleString()}\nTri      : ${chState.tri.tokens.toLocaleString()}`);
-  },
-  '/status': ()=>{
-    const lines = Object.entries(CHANNELS).map(([k,v])=>`${v.name.padEnd(14)} — ${chState[k].status.toUpperCase()} | tokens: ${chState[k].tokens}`);
-    showModal('BOT STATUS', lines.join('\n'));
-  },
-  '/projects': ()=>{
-    if (!state.projects.length){addMsg(state.activeChannel,'sys','No projects.');return;}
-    showModal('PROJECTS',state.projects.map((p,i)=>`[${i}] ${p.name} — ${p.desc||'no desc'}`).join('\n'));
-  },
-  '/summarize': ()=>{
-    if (!state.files.length){addMsg(state.activeChannel,'sys','No files loaded.');return;}
-    const proj=state.activeProject!==null?state.projects[state.activeProject]?.name:'session';
-    const info=state.files.map(f=>`**${f.name}**:\n${f.content.slice(0,2000)}`).join('\n\n---\n\n');
-    sendToAPI(state.activeChannel,`Summarize these files for project "${proj}":\n\n${info}`);
-  },
-  '/progress': async ()=>{
-    const ch=state.activeChannel;
-    const proj=state.activeProject!==null?state.projects[state.activeProject]?.name:'workspace';
-    const fileInfo=state.files.length?state.files.map(f=>`${f.name}:\n${f.content.slice(0,1000)}`).join('\n\n'):'No files.';
-    const recent=chState[ch].messages.slice(-8).map(m=>`${m.role}: ${String(m.content).slice(0,150)}`).join('\n');
-    const prompt=`Generate a progress report for "${proj}". Respond ONLY in JSON:\n{"summary":"...","pct":50,"meta":"..."}\n\nFiles:\n${fileInfo}\n\nRecent:\n${recent}`;
-    addMsg(ch,'sys','Generating progress report...');
-    try {
-      const raw=await callAPI(ch,prompt);
-      const data=JSON.parse(raw.replace(/```json|```/g,'').trim());
-      state.progressCards=state.progressCards.filter(c=>c.title!==proj);
-      state.progressCards.unshift({title:proj,summary:data.summary,pct:Math.min(100,Math.max(0,data.pct)),meta:`${new Date().toLocaleTimeString()} | ${data.meta||''}`});
-      renderProgress();
-      switchTab('progress');
-      saveState();
-      addMsg(ch,'sys',`Progress: ${data.pct}% complete`);
-    } catch(e){ addMsg(ch,'err','Failed to parse progress. Try again.'); }
-  },
-  '/review': ()=>{
-    if (!state.files.length){addMsg(state.activeChannel,'sys','No files loaded.');return;}
-    const c=state.files.map(f=>`=== ${f.name} ===\n${f.content.slice(0,3000)}`).join('\n\n');
-    sendToAPI(state.activeChannel,`Review all files:\n1. Quality\n2. Bugs\n3. Improvements\n4. Architecture\n\n${c}`);
-  },
-  '/file': (args)=>{
-    const name=args.join(' ');
-    const f=state.files.find(f=>f.name.toLowerCase().includes(name.toLowerCase()));
-    if (!f){addMsg(state.activeChannel,'sys',`File not found: ${name}`);return;}
-    sendFileToChat(state.files.indexOf(f));
-  },
-};
-
-function handleSlashCmd(input) {
-  const parts=input.trim().split(' ');
-  const cmd=parts[0].toLowerCase();
-  if (slashHandlers[cmd]){slashHandlers[cmd](parts.slice(1));return;}
-  addMsg(state.activeChannel,'err',`Unknown: ${cmd}. Type /help`);
-}
-
-// ── INPUT ─────────────────────────────────────────────────
-function handleKey(e) {
-  if (e.key==='Enter'&&!e.shiftKey){e.preventDefault();hideSlash();sendMessage();}
-  if (e.key==='Escape') hideSlash();
-}
-
-function handleInput(el) {
-  el.style.height='auto';
-  el.style.height=Math.min(el.scrollHeight,120)+'px';
-  const v=el.value;
-  if (v.startsWith('/')&&!v.includes(' ')) {
-    const m=SLASH_CMDS.filter(c=>c.cmd.startsWith(v));
-    if (m.length){showSlash(m);return;}
-  }
-  hideSlash();
-}
-
-function showSlash(cmds) {
-  const dd=document.getElementById('slash-dropdown');
-  dd.innerHTML=cmds.map(c=>`<div class="slash-item" onclick="pickSlash('${c.cmd}')"><span class="cmd">${c.cmd}</span><span class="desc">${c.desc}</span></div>`).join('');
-  dd.classList.add('open');
-}
-function hideSlash(){document.getElementById('slash-dropdown').classList.remove('open');}
-function pickSlash(cmd){document.getElementById('user-input').value=cmd+' ';hideSlash();document.getElementById('user-input').focus();}
-
-// ── PROGRESS RENDER ───────────────────────────────────────
-function renderProgress() {
-  const el=document.getElementById('progress-list');
-  if (!state.progressCards.length){
-    el.innerHTML='<div class="no-data">No progress reports.<br>Use /progress to generate one.</div>';
-    return;
-  }
-  el.innerHTML=state.progressCards.map(c=>`
-    <div class="progress-card">
-      <div class="pc-title">${escHtml(c.title)}</div>
-      <div class="pc-summary">${escHtml(c.summary)}</div>
-      <div class="pc-bar-wrap">
-        <div class="pc-bar"><div class="pc-bar-fill" style="width:${c.pct}%"></div></div>
-        <div class="pc-pct">${c.pct}%</div>
-      </div>
-      <div class="pc-meta">${escHtml(c.meta)}</div>
-    </div>
-  `).join('');
-}
-
-// ── MODAL ─────────────────────────────────────────────────
-function showModal(title,content){
-  document.getElementById('modal-title').textContent=title;
-  document.getElementById('modal-content').textContent=content;
-  document.getElementById('modal-overlay').classList.add('open');
-}
-function closeModal(){document.getElementById('modal-overlay').classList.remove('open');}
-
-// ── UTILS ─────────────────────────────────────────────────
-function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function formatBytes(b){if(b<1024)return b+'B';if(b<1048576)return(b/1024).toFixed(1)+'KB';return(b/1048576).toFixed(1)+'MB';}
-
-// ── RESIZE HANDLES ────────────────────────────────────────
-function makeResizable(handle,target,dir){
-  let sx,sw;
-  handle.addEventListener('mousedown',e=>{
-    sx=e.clientX; sw=target.getBoundingClientRect().width;
-    const mv=ev=>{const dx=dir==='right'?-(ev.clientX-sx):(ev.clientX-sx);target.style.width=Math.max(160,Math.min(400,sw+dx))+'px';};
-    const up=()=>{document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);};
-    document.addEventListener('mousemove',mv);
-    document.addEventListener('mouseup',up);
-  });
-}
-makeResizable(document.getElementById('rh-left'),document.getElementById('sidebar'),'left');
-makeResizable(document.getElementById('rh-right'),document.getElementById('right-panel'),'right');
-
-boot();
-
-// patch fetch to inject API key
-const _origFetch = window.fetch;
-window.fetch = function(url, opts) {
-  if (url && url.includes('anthropic.com')) {
-    opts = opts || {};
-    opts.headers = opts.headers || {};
-    const k = localStorage.getItem('cc-api-key') || '';
-    opts.headers['x-api-key'] = k;
-    opts.headers['anthropic-version'] = '2023-06-01';
-    opts.headers['anthropic-dangerous-direct-browser-access'] = 'true';
-  }
-  return _origFetch(url, opts);
-};
-</script>
-
-<!-- MOBILE BOTTOM BAR -->
-<div id="mobile-bar">
-  <button onclick="toggleMobilePanel('sidebar')" id="mb-projects">☰ PROJECTS</button>
-  <button onclick="toggleMobilePanel('right-panel')" id="mb-files">⊕ FILES</button>
-  <button onclick="window.open('https://ace-crm.up.railway.app','_blank')" id="mb-crm">⬡ CRM</button>
-  <button onclick="changeKey()" id="mb-key">⚿ KEY</button>
-</div>
-
-<!-- API KEY OVERLAY -->
-<div id="key-overlay" style="display:flex;position:fixed;inset:0;background:rgba(0,0,0,0.97);z-index:9999;align-items:center;justify-content:center;">
-  <div style="background:#111;border:1px solid #333;padding:36px;width:420px;font-family:'Share Tech Mono',monospace;">
-    <div style="font-family:'VT323',monospace;font-size:30px;color:#fff;margin-bottom:4px;letter-spacing:3px;">COMMAND CENTER</div>
-    <div style="font-size:10px;color:#555;letter-spacing:3px;margin-bottom:28px;">// ANTHROPIC API KEY REQUIRED</div>
-    <div style="font-size:10px;color:#888;margin-bottom:8px;">API KEY</div>
-    <input id="api-key-input" type="password" placeholder="sk-ant-..."
-      style="width:100%;background:#0a0a0a;border:1px solid #444;color:#e0e0e0;font-family:'Share Tech Mono',monospace;font-size:13px;padding:10px 12px;outline:none;margin-bottom:10px;"
-      onkeydown="if(event.key===&apos;Enter&apos;) saveApiKey()"
-      onfocus="this.style.borderColor=&apos;#888&apos;"
-      onblur="this.style.borderColor=&apos;#444&apos;"
-    />
-    <div style="font-size:10px;color:#3a3a3a;margin-bottom:24px;">Stored locally in your browser. Never logged or shared.</div>
-    <button onclick="saveApiKey()"
-      style="width:100%;background:none;border:1px solid #666;color:#fff;font-family:'Share Tech Mono',monospace;font-size:14px;padding:10px;cursor:pointer;letter-spacing:2px;"
-    >[ CONNECT ]</button>
-    <div id="key-error" style="color:#ff3c3c;font-size:11px;margin-top:10px;display:none;">Invalid key — must start with sk-ant-</div>
-    <div style="margin-top:16px;font-size:10px;color:#333;">Get your key: console.anthropic.com → API Keys</div>
+<!-- KEY OVERLAY -->
+<div id="key-ov">
+  <div id="kbox">
+    <div class="kt">COMMAND CENTER</div>
+    <div class="ks">// ANTHROPIC API KEY REQUIRED</div>
+    <input id="k-in" type="password" placeholder="sk-ant-..." onkeydown="if(event.key==='Enter')saveKey()">
+    <div class="kn">Stored locally in your browser. Never shared.</div>
+    <button onclick="saveKey()">[ CONNECT ]</button>
+    <div id="kerr">Invalid key — must start with sk-ant-</div>
+    <div id="kinfo">Get your key: console.anthropic.com → API Keys</div>
   </div>
 </div>
 
 <script>
-function saveApiKey() {
-  const k = document.getElementById('api-key-input').value.trim();
-  if (!k.startsWith('sk-')) { document.getElementById('key-error').style.display='block'; return; }
-  localStorage.setItem('cc-api-key', k);
-  document.getElementById('key-overlay').style.display='none';
+// ── CONSTANTS ───────────────────────────────────────────
+const MAX_CTX = 200000;
+const CHANNELS = {
+  fortus: { name:'FORTUS',  persona:'You are Fortus, a sharp and direct AI assistant. Technical, concise. Help with code, architecture, strategy. Sign responses as "— Fortus".' },
+  torque: { name:'TORQUE',  persona:'You are Torque, a creative and analytical AI assistant. Think laterally, offer fresh perspectives. Sign responses as "— Torque".' },
+  tri:    { name:'TRI-CHANNEL', persona:'Respond as both Fortus and Torque. Label each clearly. Fortus: direct and technical. Torque: creative and lateral. They should reference each other.' },
+};
+const COSTS = {
+  'claude-sonnet-4-5': {i:3.00,  o:15.00},
+  'claude-opus-4-5':   {i:15.00, o:75.00},
+  'claude-haiku-4-5':  {i:0.80,  o:4.00},
+};
+const SLASH = [
+  {c:'/help',     d:'Show commands'},
+  {c:'/model',    d:'/model sonnet|opus|haiku'},
+  {c:'/search',   d:'Toggle web search'},
+  {c:'/persona',  d:'Open persona editor'},
+  {c:'/clear',    d:'Clear current channel'},
+  {c:'/clearall', d:'Clear all channels'},
+  {c:'/export',   d:'Export session'},
+  {c:'/tokens',   d:'Token usage'},
+  {c:'/summarize',d:'Summarize loaded files'},
+  {c:'/progress', d:'Generate progress report'},
+  {c:'/review',   d:'Review all loaded files'},
+  {c:'/projects', d:'List projects'},
+  {c:'/debate',   d:'/debate <topic> — Fortus vs Torque'},
+  {c:'/file',     d:'/file <name> — ask AI about file'},
+  {c:'/status',   d:'Show bot statuses'},
+];
+
+// ── STATE ────────────────────────────────────────────────
+const chs = {
+  fortus: {msgs:[], tokens:0, status:'online'},
+  torque: {msgs:[], tokens:0, status:'online'},
+  tri:    {msgs:[], tokens:0, status:'online'},
+};
+const costs = {fortus:0, torque:0, tri:0};
+let sessTok = 0;
+let attachedImgs = [];
+let S = {
+  model:'claude-sonnet-4-5', search:false, persona:'', activeCh:'fortus',
+  projects:[], activeProj:null, files:[], progress:[], msgCount:0, sidebarCollapsed:false,
+};
+
+// ── STORAGE ──────────────────────────────────────────────
+async function save() {
+  try { await window.storage.set('cc-v3', JSON.stringify({projects:S.projects,activeProj:S.activeProj,persona:S.persona,model:S.model,progress:S.progress,sidebarCollapsed:S.sidebarCollapsed})); } catch(e){}
 }
-(function(){ if(localStorage.getItem('cc-api-key')) document.getElementById('key-overlay').style.display='none'; })();
+async function load() {
+  try { const r=await window.storage.get('cc-v3'); if(r){const d=JSON.parse(r.value);Object.assign(S,d);} } catch(e){}
+}
+
+// ── KEY ──────────────────────────────────────────────────
+function getKey() { return localStorage.getItem('cc-key')||''; }
+function saveKey() {
+  const k=document.getElementById('k-in').value.trim();
+  if(!k.startsWith('sk-')){document.getElementById('kerr').style.display='block';return;}
+  localStorage.setItem('cc-key',k);
+  document.getElementById('key-ov').style.display='none';
+}
+function changeKey() {
+  localStorage.removeItem('cc-key');
+  document.getElementById('k-in').value='';
+  document.getElementById('kerr').style.display='none';
+  document.getElementById('key-ov').style.display='flex';
+}
+
+// ── BOOT ─────────────────────────────────────────────────
+async function boot() {
+  await load();
+  // Check key
+  if(getKey()) document.getElementById('key-ov').style.display='none';
+  // Seed projects
+  if(!S.projects.length) {
+    S.projects=[
+      {name:'ACE AUTO HAIL REPAIR',desc:'Main shop CRM. pw: aceauto2026. Active: RO1003 David Berry URGENT (Hellcat wheels $1100), RO1004 Erick Ramirez RAV4 total loss $4340.',urls:['https://all-pro-pg-crm-production.up.railway.app','https://github.com/FortusStark/Ace-Auto-Hail-Repair-CRM'],created:Date.now()},
+      {name:'ALL-PRO PROPERTIES',desc:'CRM with Prince Stokes. pw: allpro2026. Fences/Concrete/Patios. SOS compliance DUE MARCH 3.',urls:['https://romantic-connection-production-9950.up.railway.app'],created:Date.now()},
+      {name:'DENVER DENTS',desc:'Beta test for Noah/DentOps pitch. pw: denverdents2026. Lane (574-904-6900), Abbey Hiett PM (720-775-5817).',urls:['https://generous-courage-production.up.railway.app'],created:Date.now()},
+      {name:'COMMAND CENTER',desc:'AI workspace Fortus+Torque. Fix Torque 409 errors. Add voice input, customer portal.',urls:['https://fortusstark.github.io/cc-workspace/','https://github.com/FortusStark/cc-workspace'],created:Date.now()},
+      {name:'TORQUE WORKSPACE',desc:'@Torquethebuilderbot. ~/torque-workspace/ — 409 errors, fix separately. Skills: ~/.openclaw/skills/',urls:[],created:Date.now()},
+      {name:'ACE OPS STRATEGY',desc:'DentOps estimates + Fortus everything else. Pipeline: Denver Dents→Noah→Keith Werkheiser→Sensei(global)→Mansoor(reseller).',urls:[],created:Date.now()},
+    ];
+    await save();
+  }
+  // Restore UI
+  document.getElementById('msel').value = S.model;
+  document.getElementById('mdisplay').textContent = S.model.replace('claude-','');
+  if(S.persona) document.getElementById('spi').value = S.persona;
+  if(S.sidebarCollapsed){document.getElementById('sidebar').classList.add('collapsed');document.getElementById('stog').textContent='▶';}
+  renderProjs();
+  renderProg();
+  updateChi();
+  // Boot msgs
+  const lines=['COMMAND CENTER v3.0 — THREE-CHANNEL WORKSPACE',`Model: ${S.model.replace('claude-','')} | Projects: ${S.projects.length}`,'Type /help for commands.'];
+  Object.keys(CHANNELS).forEach(ch=>{
+    lines.forEach((l,i)=>setTimeout(()=>addMsg(ch,'sys',l),i*60));
+    setTimeout(()=>addMsg(ch,'sys',`${CHANNELS[ch].name} is online and ready.`),lines.length*60+100);
+  });
+}
+
+// ── STATUS ───────────────────────────────────────────────
+function setStatus(ch,s) {
+  chs[ch].status=s;
+  const labels={online:'online',working:'working...',offline:'offline',idle:'idle'};
+  [`sl-${ch}`,`tsl-${ch}`].forEach(id=>{const el=document.getElementById(id);if(el)el.className=`sl ${s}`;});
+  const t=document.getElementById(`st-${ch}`);
+  if(t)t.textContent=labels[s]||s;
+}
+
+// ── CHANNEL SWITCH ───────────────────────────────────────
+function switchCh(ch) {
+  S.activeCh=ch;
+  document.querySelectorAll('.ct').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.ch-win').forEach(w=>w.classList.remove('active'));
+  document.getElementById(`tab-${ch}`).classList.add('active');
+  document.getElementById(`cw-${ch}`).classList.add('active');
+  const badge=document.getElementById(`ur-${ch}`);
+  badge.textContent='0'; badge.classList.remove('has');
+  updateChi();
+  updateTok(ch);
+}
+function addUnread(ch) {
+  if(ch===S.activeCh) return;
+  const b=document.getElementById(`ur-${ch}`);
+  b.textContent=(parseInt(b.textContent)||0)+1;
+  b.classList.add('has');
+}
+function updateChi() {
+  const colors={fortus:'#a0b8d0',torque:'#c8a880',tri:'#a8c8a8'};
+  document.getElementById('chi-dot').style.background=colors[S.activeCh]||'#ccc';
+  document.getElementById('chi-lbl').textContent=CHANNELS[S.activeCh].name+' CHANNEL';
+}
+
+// ── MESSAGES ─────────────────────────────────────────────
+function addMsg(ch,type,text) {
+  const win=document.getElementById(`msgs-${ch}`);
+  const div=document.createElement('div');
+  div.className=`msg ${type}`;
+  const ts=new Date().toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const who={user:'YOU',ai:CHANNELS[ch]?.name||'AI',sys:'SYS',err:'ERR'}[type]||type.toUpperCase();
+  const lightHtml=type==='ai'?`<span class="sl ${chs[ch]?.status||'online'}" style="width:7px;height:7px;"></span>`:'';
+  div.innerHTML=`<div class="mh"><div class="who">${lightHtml}<span>${esc(who)}</span></div><span class="ts">${ts}</span></div><div class="mb">${esc(text)}</div>`;
+  win.appendChild(div);
+  win.scrollTop=win.scrollHeight;
+  S.msgCount++;
+  document.getElementById('mcnt').textContent=S.msgCount;
+  if(type!=='sys') addUnread(ch);
+  return div;
+}
+function addTyping(ch) {
+  const win=document.getElementById(`msgs-${ch}`);
+  const div=document.createElement('div');
+  div.className='msg ai'; div.id=`ty-${ch}`;
+  div.innerHTML=`<div class="mh"><div class="who"><span class="sl working" style="width:7px;height:7px;"></span><span>${CHANNELS[ch].name}</span></div></div><div class="mb"><span class="typing-dots"><span>.</span><span>.</span><span>.</span></span></div>`;
+  win.appendChild(div);
+  win.scrollTop=win.scrollHeight;
+}
+function remTyping(ch) { const e=document.getElementById(`ty-${ch}`);if(e)e.remove(); }
+
+// ── TOKENS & COST ────────────────────────────────────────
+function updateTok(ch) {
+  const t=chs[ch||S.activeCh]?.tokens||0;
+  const pct=Math.min(100,Math.round(t/MAX_CTX*100));
+  document.getElementById('tdisplay').textContent=t.toLocaleString();
+  document.getElementById('tpct').textContent=pct+'%';
+  document.getElementById('tbf').style.width=pct+'%';
+  document.getElementById('tbf').style.background=pct>80?'var(--red)':pct>50?'var(--amber)':'var(--accent)';
+  const st=document.getElementById('tstat');
+  st.className='sp'+(pct>80?' hot':pct>50?' warn':'');
+}
+function updateCost(ch,usage) {
+  if(!usage) return;
+  const rates=COSTS[S.model]||COSTS['claude-sonnet-4-5'];
+  const c=(usage.input_tokens||0)/1e6*rates.i+(usage.output_tokens||0)/1e6*rates.o;
+  costs[ch]=(costs[ch]||0)+c;
+  sessTok+=(usage.input_tokens||0)+(usage.output_tokens||0);
+  const tot=Object.values(costs).reduce((a,b)=>a+b,0);
+  document.getElementById('c-tok').textContent=sessTok.toLocaleString();
+  document.getElementById('c-usd').textContent='$'+tot.toFixed(4);
+  document.getElementById('c-usd').className='cv'+(tot>1?' warn':'');
+  document.getElementById('c-f').textContent='$'+(costs.fortus||0).toFixed(4);
+  document.getElementById('c-t').textContent='$'+(costs.torque||0).toFixed(4);
+  document.getElementById('c-tri').textContent='$'+(costs.tri||0).toFixed(4);
+}
+
+// ── PROJECTS ─────────────────────────────────────────────
+function renderProjs() {
+  const el=document.getElementById('proj-list');
+  if(!S.projects.length){el.innerHTML='<div class="nodata">No projects.<br>Click + NEW.</div>';return;}
+  el.innerHTML=S.projects.map((p,i)=>{
+    const links=(p.urls||[]).map(u=>`<a href="${esc(u)}" target="_blank" class="plink" onclick="event.stopPropagation()">⬡ ${esc(u.replace(/^https?:\/\//,'').split('/')[0])}</a>`).join('');
+    return `<div class="pi ${S.activeProj===i?'active':''}" onclick="selProj(${i})">
+      <div class="pn">${esc(p.name)}</div>
+      <div class="pm">${esc((p.desc||'').slice(0,40))}${(p.desc||'').length>40?'...':''}</div>
+      ${links?`<div class="plinks">${links}</div>`:''}
+      <span class="pb">${S.activeProj===i?'ACTIVE':'IDLE'}</span>
+    </div>`;
+  }).join('');
+  const p=S.activeProj!==null?S.projects[S.activeProj]?.name:null;
+  document.getElementById('plabel').textContent=p?`// ${p}`:'NO PROJECT';
+  document.getElementById('pdisplay').textContent=p?p.slice(0,10):'none';
+}
+function toggleNPF(){document.getElementById('npf').classList.toggle('open');}
+function createProj(){
+  const name=document.getElementById('np-name').value.trim();
+  if(!name)return;
+  const urls=[document.getElementById('np-u1').value.trim(),document.getElementById('np-u2').value.trim(),document.getElementById('np-u3').value.trim()].filter(Boolean);
+  S.projects.push({name,desc:document.getElementById('np-desc').value.trim(),urls,created:Date.now()});
+  ['np-name','np-desc','np-u1','np-u2','np-u3'].forEach(id=>document.getElementById(id).value='');
+  toggleNPF(); renderProjs(); save();
+  addMsg(S.activeCh,'sys',`Project "${name}" created.`);
+}
+function selProj(i){S.activeProj=i;renderProjs();save();addMsg(S.activeCh,'sys',`Active: ${S.projects[i].name}`);}
+
+// ── FILES ────────────────────────────────────────────────
+function handleFDrop(e){e.preventDefault();[...e.dataTransfer.files].forEach(readF);}
+function handleFSel(e){[...e.target.files].forEach(readF);e.target.value='';}
+function readF(file){
+  const r=new FileReader();
+  r.onload=ev=>{
+    const c=ev.target.result;
+    const idx=S.files.findIndex(f=>f.name===file.name);
+    const e2={name:file.name,content:c,size:file.size,active:false};
+    if(idx>=0)S.files[idx]=e2;else S.files.push(e2);
+    renderFList();
+    addMsg(S.activeCh,'sys',`Loaded: ${file.name} (${fmtBytes(file.size)})`);
+    switchRTab('files');
+  };
+  r.readAsText(file);
+}
+function renderFList(){
+  const el=document.getElementById('flist');
+  el.innerHTML=S.files.map((f,i)=>`<div class="fi2 ${f.active?'active':''}">
+    <span class="fn" onclick="prevF(${i})" title="${esc(f.name)}">${esc(f.name)}</span>
+    <div class="fa"><button onclick="sendFChat(${i})" title="Ask AI">⌨</button><button onclick="rmF(${i})" title="Remove">✕</button></div>
+  </div>`).join('');
+}
+function prevF(i){
+  S.files.forEach((f,j)=>f.active=j===i);
+  renderFList();
+  const f=S.files[i];
+  document.getElementById('fprev').innerHTML=`<div style="color:var(--text);margin-bottom:3px;">${esc(f.name)}</div><pre style="white-space:pre-wrap;font-size:10px;color:var(--dim);">${esc(f.content.slice(0,500))}${f.content.length>500?'\n...':''}</pre>`;
+}
+function rmF(i){const n=S.files[i].name;S.files.splice(i,1);renderFList();addMsg(S.activeCh,'sys',`Removed: ${n}`);}
+function sendFChat(i){const f=S.files[i];const c=f.content.length>8000?f.content.slice(0,8000)+'\n[truncated]':f.content;sendToAPI(S.activeCh,`Review this file:\n\n**${f.name}**\n\`\`\`\n${c}\n\`\`\``);}
+
+// ── IMAGES ───────────────────────────────────────────────
+function handleImgFile(e){[...e.target.files].forEach(f=>{
+  const r=new FileReader();
+  r.onload=ev=>{
+    attachedImgs.push({b64:ev.target.result.split(',')[1],mt:f.type,prev:ev.target.result,name:f.name});
+    renderImgStrip();
+  };
+  r.readAsDataURL(f);
+});e.target.value='';}
+function renderImgStrip(){
+  const el=document.getElementById('img-strip');
+  if(!attachedImgs.length){el.className='';el.innerHTML='';return;}
+  el.className='has';
+  el.innerHTML=attachedImgs.map((img,i)=>`<div class="img-thumb"><img src="${img.prev}"><button onclick="rmImg(${i})">✕</button></div>`).join('');
+}
+function rmImg(i){attachedImgs.splice(i,1);renderImgStrip();}
+
+// ── CONTROLS ─────────────────────────────────────────────
+function setModel(v){
+  S.model=v;
+  document.getElementById('mdisplay').textContent=v.replace('claude-','');
+  addMsg(S.activeCh,'sys',`Model: ${v.replace('claude-','')}`);
+  save();
+}
+function toggleSearch(){
+  S.search=!S.search;
+  document.getElementById('srch-btn').classList.toggle('on',S.search);
+  document.getElementById('sdisplay').textContent=S.search?'ON':'OFF';
+  addMsg(S.activeCh,'sys',`Web search: ${S.search?'ON':'OFF'}`);
+}
+function togglePersona(){
+  const b=document.getElementById('persona-bar');b.classList.toggle('open');
+  document.getElementById('pers-btn').classList.toggle('on',b.classList.contains('open'));
+}
+function applyPersona(){
+  S.persona=document.getElementById('spi').value.trim();
+  Object.keys(chs).forEach(ch=>chs[ch].msgs=[]);
+  togglePersona();
+  addMsg(S.activeCh,'sys','Custom persona applied. All channels reset.');
+  save();
+}
+function clearPersona(){S.persona='';document.getElementById('spi').value='';addMsg(S.activeCh,'sys','Persona cleared.');save();}
+function clearCh(){
+  const ch=S.activeCh;
+  chs[ch].msgs=[]; chs[ch].tokens=0;
+  document.getElementById(`msgs-${ch}`).innerHTML='';
+  updateTok(ch);
+  addMsg(ch,'sys',`${CHANNELS[ch].name} cleared.`);
+}
+function exportSess(){
+  const ch=S.activeCh;
+  const lines=[...document.querySelectorAll(`#msgs-${ch} .msg`)].map(m=>{
+    const who=m.querySelector('.who span:last-child')?.textContent||'';
+    const ts=m.querySelector('.ts')?.textContent||'';
+    const body=m.querySelector('.mb')?.textContent||'';
+    return `[${who}] ${ts}\n${body}`;
+  });
+  const blob=new Blob([`# ${CHANNELS[ch].name} Export\n${new Date().toISOString()}\n\n${lines.join('\n\n---\n\n')}`],{type:'text/markdown'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${ch}-${Date.now()}.md`;a.click();
+  addMsg(ch,'sys','Session exported.');
+}
+function toggleSidebar(){
+  const sb=document.getElementById('sidebar');const tog=document.getElementById('stog');
+  S.sidebarCollapsed=!S.sidebarCollapsed;
+  sb.classList.toggle('collapsed',S.sidebarCollapsed);
+  tog.textContent=S.sidebarCollapsed?'▶':'◀';
+  save();
+}
+function toggleMob(id){
+  const el=document.getElementById(id);
+  const open=el.classList.contains('mob-open');
+  document.getElementById('sidebar').classList.remove('mob-open');
+  document.getElementById('rpanel').classList.remove('mob-open');
+  if(!open)el.classList.add('mob-open');
+}
+function switchRTab(tab){
+  document.querySelectorAll('.rt').forEach((t,i)=>t.classList.toggle('active',['files','links','progress'][i]===tab));
+  document.querySelectorAll('.tp').forEach(p=>p.classList.toggle('active',p.id===`tp-${tab}`));
+  if(tab==='links')renderLinks();
+}
+function renderLinks(){
+  const el=document.getElementById('links-list');
+  const ps=S.projects.filter(p=>p.urls&&p.urls.length);
+  if(!ps.length){el.innerHTML='<div class="nodata">No links yet.</div>';return;}
+  el.innerHTML=ps.map(p=>`<div class="lcard"><div class="lt">${esc(p.name)}</div>${(p.urls||[]).map(u=>`<a href="${esc(u)}" target="_blank" title="${esc(u)}">⬡ ${esc(u.replace(/^https?:\/\//,''))}</a>`).join('')}</div>`).join('');
+}
+function renderProg(){
+  const el=document.getElementById('prog-list');
+  if(!S.progress.length){el.innerHTML='<div class="nodata">No progress reports.<br>Use /progress to generate one.</div>';return;}
+  el.innerHTML=S.progress.map(c=>`<div class="pc"><div class="pt">${esc(c.title)}</div><div class="ps">${esc(c.summary)}</div><div class="pb2"><div class="bar"><div class="fill" style="width:${c.pct}%"></div></div><div class="pct">${c.pct}%</div></div><div class="pm2">${esc(c.meta)}</div></div>`).join('');
+}
+
+// ── SEND ─────────────────────────────────────────────────
+async function doSend(){
+  const inp=document.getElementById('ui');
+  const text=inp.value.trim();
+  const imgs=[...attachedImgs];
+  if(!text&&!imgs.length)return;
+  inp.value='';inp.style.height='auto';
+  attachedImgs=[];renderImgStrip();
+  if(text.startsWith('/')&&!imgs.length){handleSlash(text);return;}
+  const ch=S.activeCh;
+  // Show user message
+  const md=addMsg(ch,'user',text||'[image]');
+  if(imgs.length&&md){
+    imgs.forEach(img=>md.querySelector('.mb').insertAdjacentHTML('beforeend',`<img src="${img.prev}" style="max-height:80px;max-width:120px;border:1px solid var(--border);margin-top:4px;display:block;">`));
+  }
+  await sendToAPI(ch, text, imgs);
+}
+
+async function sendToAPI(ch, text, imgs=[]) {
+  const btn=document.getElementById('send-btn');
+  btn.disabled=true;
+  setStatus(ch,'working');
+  addTyping(ch);
+
+  let content;
+  if(imgs.length){
+    content=[...imgs.map(img=>({type:'image',source:{type:'base64',media_type:img.mt,data:img.b64}})),{type:'text',text:text||'What do you see in this image?'}];
+  } else {
+    let t=text;
+    const af=S.files.find(f=>f.active);
+    if(af&&!t.includes(af.name)) t=`[Active file: ${af.name}]\n\n${t}`;
+    content=t;
+  }
+
+  // History - flatten to text for API
+  const history=chs[ch].msgs.map(m=>({role:m.role,content:typeof m.content==='string'?m.content:String(m.content)}));
+
+  let sys=S.persona||CHANNELS[ch].persona;
+  if(S.activeProj!==null){const p=S.projects[S.activeProj];sys+=` Project: "${p.name}". ${p.desc||''}`;}
+
+  const body={model:S.model,max_tokens:2048,system:sys,messages:[...history,{role:'user',content}]};
+  if(S.search) body.tools=[{type:'web_search_20250305',name:'web_search'}];
+
+  try {
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||`HTTP ${res.status}`);}
+    const data=await res.json();
+    if(data.usage){chs[ch].tokens=data.usage.input_tokens+data.usage.output_tokens;updateCost(ch,data.usage);}
+    const reply=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
+    remTyping(ch);
+    addMsg(ch,'ai',reply);
+    chs[ch].msgs.push({role:'user',content:typeof content==='string'?content:'[image message]'});
+    chs[ch].msgs.push({role:'assistant',content:reply});
+    setStatus(ch,'online');
+  } catch(e){
+    remTyping(ch);
+    addMsg(ch,'err',`API Error: ${e.message}`);
+    setStatus(ch,'offline');
+    setTimeout(()=>setStatus(ch,'online'),5000);
+  }
+  btn.disabled=false;
+  updateTok(ch);
+}
+
+// ── DEBATE ───────────────────────────────────────────────
+async function runDebate(topic){
+  const ch='tri';
+  switchCh('tri');
+  addMsg(ch,'sys','Starting debate: '+topic);
+  chs[ch].msgs.push({role:'user',content:topic});
+
+  const rounds=[
+    {who:'fortus',sys:CHANNELS.fortus.persona+' You are in a group debate. Be direct. Torque will respond after you.'},
+    {who:'torque',sys:CHANNELS.torque.persona+' You are in a group debate. React to what Fortus just said. Reference Fortus by name.'},
+    {who:'fortus',sys:CHANNELS.fortus.persona+' Torque just responded. Give a final sharp reply to Torque.'},
+  ];
+
+  for(const round of rounds){
+    setStatus(round.who,'working');
+    addTyping(ch);
+    const body={model:S.model,max_tokens:1024,system:round.sys,messages:chs[ch].msgs.map(m=>({role:m.role,content:m.content}))};
+    if(S.search)body.tools=[{type:'web_search_20250305',name:'web_search'}];
+    try{
+      const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      const data=await res.json();
+      const reply=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
+      remTyping(ch);
+      const md=addMsg(ch,'ai',reply);
+      if(md)md.querySelector('.who span:last-child').textContent=round.who.toUpperCase();
+      chs[ch].msgs.push({role:'assistant',content:reply});
+      setStatus(round.who,'online');
+      if(data.usage)updateCost(ch,data.usage);
+    }catch(e){remTyping(ch);addMsg(ch,'err',`Error: ${e.message}`);setStatus(round.who,'offline');break;}
+  }
+  addMsg(ch,'sys','Debate complete.');
+}
+
+// ── SLASH COMMANDS ────────────────────────────────────────
+const handlers={
+  '/help':()=>showModal('COMMANDS',SLASH.map(s=>`${s.c.padEnd(14)} — ${s.d}`).join('\n')),
+  '/model':(a)=>{const m={'sonnet':'claude-sonnet-4-5','opus':'claude-opus-4-5','haiku':'claude-haiku-4-5'};const k=a[0]?.toLowerCase();if(m[k]){setModel(m[k]);document.getElementById('msel').value=m[k];}else addMsg(S.activeCh,'sys','Usage: /model sonnet|opus|haiku');},
+  '/search':()=>toggleSearch(),
+  '/persona':()=>togglePersona(),
+  '/clear':()=>clearCh(),
+  '/clearall':()=>{Object.keys(chs).forEach(ch=>{chs[ch].msgs=[];chs[ch].tokens=0;document.getElementById(`msgs-${ch}`).innerHTML='';});addMsg(S.activeCh,'sys','All channels cleared.');},
+  '/export':()=>exportSess(),
+  '/tokens':()=>{const ch=S.activeCh;showModal('TOKENS',`Channel: ${CHANNELS[ch].name}\nTokens: ${chs[ch].tokens.toLocaleString()}\nUsage: ${Math.round(chs[ch].tokens/MAX_CTX*100)}%\n\nFortus: ${chs.fortus.tokens}\nTorque: ${chs.torque.tokens}\nTri: ${chs.tri.tokens}`);},
+  '/status':()=>showModal('STATUS',Object.entries(CHANNELS).map(([k,v])=>`${v.name.padEnd(14)} — ${chs[k].status} | tokens: ${chs[k].tokens}`).join('\n')),
+  '/projects':()=>{if(!S.projects.length){addMsg(S.activeCh,'sys','No projects.');return;}showModal('PROJECTS',S.projects.map((p,i)=>`[${i}] ${p.name} — ${p.desc||'no desc'}`).join('\n'));},
+  '/summarize':()=>{if(!S.files.length){addMsg(S.activeCh,'sys','No files loaded.');return;}const info=S.files.map(f=>`**${f.name}**:\n${f.content.slice(0,2000)}`).join('\n\n');sendToAPI(S.activeCh,`Summarize these files:\n\n${info}`);},
+  '/progress':async()=>{
+    const ch=S.activeCh;const proj=S.activeProj!==null?S.projects[S.activeProj]?.name:'workspace';
+    const fi=S.files.length?S.files.map(f=>`${f.name}:\n${f.content.slice(0,1000)}`).join('\n\n'):'No files.';
+    const recent=chs[ch].msgs.slice(-8).map(m=>`${m.role}: ${String(m.content).slice(0,150)}`).join('\n');
+    addMsg(ch,'sys','Generating progress report...');
+    try{
+      const body={model:S.model,max_tokens:500,system:'Respond ONLY with valid JSON, no markdown, no explanation.',messages:[{role:'user',content:`Generate progress report for "${proj}". Return JSON only: {"summary":"...","pct":50,"meta":"..."}\n\nFiles:\n${fi}\n\nRecent:\n${recent}`}]};
+      const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      const data=await res.json();
+      const raw=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+      const d=JSON.parse(raw.replace(/```json|```/g,'').trim());
+      S.progress=S.progress.filter(c=>c.title!==proj);
+      S.progress.unshift({title:proj,summary:d.summary,pct:Math.min(100,Math.max(0,d.pct)),meta:`${new Date().toLocaleTimeString()} | ${d.meta||''}`});
+      renderProg();switchRTab('progress');save();
+      addMsg(ch,'sys',`Progress: ${d.pct}% complete`);
+    }catch(e){addMsg(ch,'err','Progress failed: '+e.message);}
+  },
+  '/review':()=>{if(!S.files.length){addMsg(S.activeCh,'sys','No files.');return;}const c=S.files.map(f=>`=== ${f.name} ===\n${f.content.slice(0,3000)}`).join('\n\n');sendToAPI(S.activeCh,`Review all files for quality, bugs, improvements:\n\n${c}`);},
+  '/debate':(a)=>{const t=a.join(' ');if(!t){addMsg('tri','sys','Usage: /debate <topic>');return;}runDebate(t);},
+  '/file':(a)=>{const n=a.join(' ');const f=S.files.find(f=>f.name.toLowerCase().includes(n.toLowerCase()));if(!f){addMsg(S.activeCh,'sys',`File not found: ${n}`);return;}sendFChat(S.files.indexOf(f));},
+};
+
+function handleSlash(input){
+  const parts=input.trim().split(' ');
+  const cmd=parts[0].toLowerCase();
+  if(handlers[cmd]){handlers[cmd](parts.slice(1));return;}
+  addMsg(S.activeCh,'err',`Unknown: ${cmd}. Type /help`);
+}
+
+// ── INPUT ────────────────────────────────────────────────
+function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();hideSlash();doSend();}if(e.key==='Escape')hideSlash();}
+function handleInput(el){
+  el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';
+  const v=el.value;
+  if(v.startsWith('/')&&!v.includes(' ')){const m=SLASH.filter(s=>s.c.startsWith(v));if(m.length){showSlash(m);return;}}
+  hideSlash();
+}
+function showSlash(cmds){const dd=document.getElementById('slash-dd');dd.innerHTML=cmds.map(s=>`<div class="si" onclick="pickSlash('${s.c}')"><span class="sc2">${s.c}</span><span class="sd">${s.d}</span></div>`).join('');dd.classList.add('open');}
+function hideSlash(){document.getElementById('slash-dd').classList.remove('open');}
+function pickSlash(c){document.getElementById('ui').value=c+' ';hideSlash();document.getElementById('ui').focus();}
+
+// ── MODAL ────────────────────────────────────────────────
+function showModal(title,content){document.getElementById('mtitle').textContent=title;document.getElementById('mcont').textContent=content;document.getElementById('modal').classList.add('open');}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+
+// ── UTILS ────────────────────────────────────────────────
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function fmtBytes(b){if(b<1024)return b+'B';if(b<1048576)return(b/1024).toFixed(1)+'KB';return(b/1048576).toFixed(1)+'MB';}
+
+// ── RESIZE ───────────────────────────────────────────────
+function mkResize(handle,target,dir){
+  let sx,sw;
+  handle.addEventListener('mousedown',e=>{
+    sx=e.clientX;sw=target.getBoundingClientRect().width;
+    const mv=ev=>{const dx=dir==='right'?-(ev.clientX-sx):ev.clientX-sx;target.style.width=Math.max(160,Math.min(400,sw+dx))+'px';};
+    const up=()=>{document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);};
+    document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);
+  });
+}
+mkResize(document.getElementById('rhl'),document.getElementById('sidebar'),'left');
+mkResize(document.getElementById('rhr'),document.getElementById('rpanel'),'right');
+
+// Fetch interceptor for API key
+const _fetch=window.fetch;
+window.fetch=function(url,opts){
+  if(url&&url.includes('anthropic.com')){
+    opts=opts||{};opts.headers=opts.headers||{};
+    opts.headers['x-api-key']=getKey();
+    opts.headers['anthropic-version']='2023-06-01';
+    opts.headers['anthropic-dangerous-direct-browser-access']='true';
+  }
+  return _fetch(url,opts);
+};
+
+boot();
 </script>
 </body>
 </html>
