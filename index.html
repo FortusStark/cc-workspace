@@ -603,6 +603,24 @@ function changeKey() {
   document.getElementById('key-ov').style.display='flex';
 }
 
+// ── EMAIL HELPERS ────────────────────────────────────────
+async function emailRun(cmd) {
+  const parseCmd = "python3 -c \"import json,sys; d=json.load(sys.stdin); print(d.get('summary',d.get('message',d.get('error',str(d)))))\"";
+  const fullCmd = cmd + " | " + parseCmd;
+  try {
+    const res = await fetch(`${S.boltUrl}/`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Bolt-Key':S.boltKey},
+      body: JSON.stringify({action:'run', command: fullCmd})
+    });
+    const data = await res.json();
+    return data.output || data.message || null;
+  } catch(e) {
+    addMsg(S.activeCh,'err','Email/BOLT error: '+e.message);
+    return null;
+  }
+}
+
 // ── BOLT ─────────────────────────────────────────────────
 function toggleBoltPanel() {
   const p=document.getElementById('bolt-panel');
@@ -1158,22 +1176,29 @@ const handlers={
   '/clearall':()=>{Object.keys(chs).forEach(ch=>{chs[ch].msgs=[];chs[ch].tokens=0;document.getElementById(`msgs-${ch}`).innerHTML='';});addMsg(S.activeCh,'sys','All channels cleared.');},
   '/export':()=>exportSess(),
   '/tokens':()=>{const ch=S.activeCh;showModal('TOKENS',`Channel: ${CHANNELS[ch].name}\nTokens: ${chs[ch].tokens.toLocaleString()}\nUsage: ${Math.round(chs[ch].tokens/MAX_CTX*100)}%\n\nFortus: ${chs.fortus.tokens}\nTorque: ${chs.torque.tokens}\nTri: ${chs.tri.tokens}`);},
-  '/email':(a)=>{
+  '/email':async(a)=>{
     const sub=a[0]||'inbox';
+    const ch=S.activeCh;
     if(sub==='inbox'||!a.length){
-      boltCmd('run',{command:'python3 ~/torque-workspace/bots/gmail_bridge.py inbox 10'});
+      addMsg(ch,'sys','Fetching inbox...');
+      const res=await emailRun('python3 ~/torque-workspace/bots/gmail_bridge.py inbox 10');
+      if(res) sendToAPI(ch, `Here is my current email inbox. Please summarize what needs attention:\n\n${res}`);
     } else if(sub==='read'&&a[1]){
-      boltCmd('run',{command:`python3 ~/torque-workspace/bots/gmail_bridge.py read ${a[1]}`});
+      addMsg(ch,'sys',`Reading email ${a[1]}...`);
+      const res=await emailRun(`python3 ~/torque-workspace/bots/gmail_bridge.py read ${a[1]}`);
+      if(res) sendToAPI(ch, `Here is the full email:\n\n${res}`);
     } else if(sub==='draft'&&a.length>=3){
       const to=a[1]; const subj=a[2]; const body=a.slice(3).join(' ');
-      boltCmd('run',{command:`python3 ~/torque-workspace/bots/gmail_bridge.py draft "${to}" "${subj}" "${body}"`});
+      const res=await emailRun(`python3 ~/torque-workspace/bots/gmail_bridge.py draft "${to}" "${subj}" "${body}"`);
+      if(res) addMsg(ch,'sys','Draft created: '+res);
     } else if(sub==='send'&&a.length>=3){
       const confirmed=confirm(`Send email to ${a[1]}?`);
-      if(!confirmed){addMsg(S.activeCh,'sys','Send cancelled.');return;}
+      if(!confirmed){addMsg(ch,'sys','Send cancelled.');return;}
       const to=a[1]; const subj=a[2]; const body=a.slice(3).join(' ');
-      boltCmd('run',{command:`python3 ~/torque-workspace/bots/gmail_bridge.py send "${to}" "${subj}" "${body}"`});
+      const res=await emailRun(`python3 ~/torque-workspace/bots/gmail_bridge.py send "${to}" "${subj}" "${body}"`);
+      if(res) addMsg(ch,'sys','Sent: '+res);
     } else {
-      addMsg(S.activeCh,'sys','Usage: /email inbox | /email read <id> | /email draft <to> <subject> <body> | /email send <to> <subject> <body>');
+      addMsg(ch,'sys','Usage: /email inbox | /email read <id> | /email draft <to> <subject> <body> | /email send <to> <subject> <body>');
     }
   },
   '/bolt':(a)=>{
