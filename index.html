@@ -1133,6 +1133,7 @@ async function sendToAPI(ch, text, imgs=[]) {
       chs[ch].msgs.push({role:'assistant',content:reply});
       setStatus(ch,'online');
       autoExtractIfNeeded();
+      if(S.boltConnected) await autoBolt(ch, reply);
       break;
     } catch(e){
       if(attempt===maxRetries-1){
@@ -1147,6 +1148,51 @@ async function sendToAPI(ch, text, imgs=[]) {
   }
   btn.disabled=false;
   updateTok(ch);
+}
+
+
+// ── AUTO-BOLT ─────────────────────────────────────────────
+async function autoBolt(ch, reply) {
+  const lower = reply.toLowerCase();
+  const actions = [];
+
+  // Detect: open URL
+  const urlMatch = reply.match(/(?:open|navigate to|go to)\s+(https?:\/\/[^\s"']+)/i);
+  if(urlMatch) actions.push({action:'open', params:{url:urlMatch[1]}, label:`open ${urlMatch[1].slice(0,40)}`});
+
+  // Detect: run command
+  const runMatch = reply.match(/(?:run|execute|terminal[:\s]+)\s*`([^`]+)`/i);
+  if(runMatch) actions.push({action:'run', params:{command:runMatch[1]}, label:`run: ${runMatch[1].slice(0,40)}`});
+
+  // Detect: notify
+  const notifyMatch = reply.match(/(?:send.*notification|notify.*?)[:\"']([^"'\n]{5,80})["\']/i);
+  if(notifyMatch) actions.push({action:'notify', params:{message:notifyMatch[1]}, label:`notify: ${notifyMatch[1].slice(0,40)}`});
+
+  // Detect: screenshot request
+  if(/take a screenshot|capture.*screen|screenshot/i.test(reply)) actions.push({action:'screenshot', params:{}, label:'screenshot'});
+
+  for(const a of actions) {
+    addMsg(ch,'sys',`⚡ BOLT auto: ${a.label}`);
+    try {
+      const res = await fetch(
+        a.action==='screenshot' ? `${S.boltUrl}/screenshot` : `${S.boltUrl}/`,
+        a.action==='screenshot'
+          ? {method:'GET', headers:{'X-Bolt-Key':S.boltKey}}
+          : {method:'POST', headers:{'Content-Type':'application/json','X-Bolt-Key':S.boltKey}, body:JSON.stringify({action:a.action,...a.params})}
+      );
+      const data = await res.json();
+      if(a.action==='screenshot' && data.image) {
+        addMsg(ch,'sys','📸 Screenshot captured');
+        addMsg(ch,'ai',`![screenshot](data:image/jpeg;base64,${data.image.slice(0,50)}...)`);
+      } else if(data.success) {
+        addMsg(ch,'sys',`⚡ BOLT ✓ ${(data.message||data.output||'done').slice(0,80)}`);
+      } else {
+        addMsg(ch,'err',`⚡ BOLT ✗ ${data.error||'failed'}`);
+      }
+    } catch(e) {
+      addMsg(ch,'err',`⚡ BOLT offline: ${e.message}`);
+    }
+  }
 }
 
 // ── DEBATE ───────────────────────────────────────────────
