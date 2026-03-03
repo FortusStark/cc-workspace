@@ -578,6 +578,7 @@ let S = {
   memory:[], memoryEnabled:true,
   boltKey:'bolt-local-key', boltUrl:'http://localhost:7777',
   boltConnected:false,
+  fortusContext:'',
 };
 
 // ── STORAGE ──────────────────────────────────────────────
@@ -1108,6 +1109,7 @@ async function sendToAPI(ch, text, imgs=[]) {
   const history=chs[ch].msgs.map(m=>({role:m.role,content:typeof m.content==='string'?m.content:String(m.content)}));
 
   let sys=S.persona||CHANNELS[ch].persona;
+  if(S.fortusContext) sys+=`\n\n${S.fortusContext}`;
   if(S.activeProj!==null){const p=S.projects[S.activeProj];sys+=` Project: "${p.name}". ${p.desc||''}`;}
 
   const body={model:S.model,max_tokens:2048,system:sys,messages:[...history,{role:'user',content}]};
@@ -1357,6 +1359,22 @@ window.fetch=function(url,opts){
 // Auto-ping Bolt every 30s
 checkBolt();
 setInterval(checkBolt, 30000);
+// Load Fortus context from file
+async function loadFortusContext() {
+  try {
+    const res = await fetch(`${S.boltUrl}/`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Bolt-Key':S.boltKey},
+      body: JSON.stringify({action:'run', command:'cat /Users/michaelmichener/.openclaw/workspace/FORTUS_PERMANENT_CONTEXT.md 2>/dev/null || echo ""'})
+    });
+    const data = await res.json();
+    if(data.output && data.output.length > 10) {
+      S.fortusContext = data.output;
+      Object.keys(CHANNELS).forEach(ch=>addMsg(ch,'sys','Context loaded from FORTUS_PERMANENT_CONTEXT.md'));
+    }
+  } catch(e) { console.log('Context load skipped - Bolt not ready'); }
+}
+setTimeout(loadFortusContext, 2000);
 boot();
 </script>
 </body>
