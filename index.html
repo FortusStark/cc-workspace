@@ -582,10 +582,10 @@ let S = {
 
 // ── STORAGE ──────────────────────────────────────────────
 async function save() {
-  try { await window.storage.set('cc-v3', JSON.stringify({projects:S.projects,activeProj:S.activeProj,persona:S.persona,model:S.model,progress:S.progress,sidebarCollapsed:S.sidebarCollapsed,memory:S.memory,memoryEnabled:S.memoryEnabled})); } catch(e){}
+  try { await window.storage.set('cc-v3', JSON.stringify({projects:S.projects,activeProj:S.activeProj,persona:S.persona,model:S.model,progress:S.progress,sidebarCollapsed:S.sidebarCollapsed,memory:S.memory,memoryEnabled:S.memoryEnabled,costs:costs,sessTok:sessTok})); } catch(e){}
 }
 async function load() {
-  try { const r=await window.storage.get('cc-v3'); if(r){const d=JSON.parse(r.value);Object.assign(S,d);} } catch(e){}
+  try { const r=await window.storage.get('cc-v3'); if(r){const d=JSON.parse(r.value);Object.assign(S,d);if(d.costs)Object.assign(costs,d.costs);if(d.sessTok)sessTok=d.sessTok;} } catch(e){}
 }
 
 // ── KEY ──────────────────────────────────────────────────
@@ -887,7 +887,9 @@ function updateCost(ch,usage) {
   const tot=Object.values(costs).reduce((a,b)=>a+b,0);
   document.getElementById('c-tok').textContent=sessTok.toLocaleString();
   document.getElementById('c-usd').textContent='$'+tot.toFixed(4);
-  document.getElementById('c-usd').className='cv'+(tot>1?' warn':'');
+  document.getElementById('c-usd').className='cv'+(tot>5?' hot':tot>1?' warn':'');
+  if(tot>5&&Math.round(tot*10)%10===0) addMsg(ch,'sys','⚠️ Session cost over $'+tot.toFixed(2)+' — consider /clear to reset context');
+  save();
   document.getElementById('c-f').textContent='$'+(costs.fortus||0).toFixed(4);
   document.getElementById('c-t').textContent='$'+(costs.torque||0).toFixed(4);
   document.getElementById('c-tri').textContent='$'+(costs.tri||0).toFixed(4);
