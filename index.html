@@ -1292,6 +1292,9 @@ window.fetch=function(url,opts){
   return _fetch(url,opts);
 };
 
+// Auto-ping Bolt every 30s
+checkBolt();
+setInterval(checkBolt, 30000);
 boot();
 </script>
 </body>
