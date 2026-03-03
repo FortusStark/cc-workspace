@@ -1169,7 +1169,7 @@ async function autoBolt(ch, reply) {
   if(notifyMatch) actions.push({action:'notify', params:{message:notifyMatch[1]}, label:`notify: ${notifyMatch[1].slice(0,40)}`});
 
   // Detect: screenshot request
-  if(/take a screenshot|capture.*screen|screenshot/i.test(reply)) actions.push({action:'screenshot', params:{}, label:'screenshot'});
+  if(/\btake a screenshot\b/i.test(reply)) actions.push({action:'screenshot', params:{}, label:'screenshot'});
 
   for(const a of actions) {
     addMsg(ch,'sys',`⚡ BOLT auto: ${a.label}`);
