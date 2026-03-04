@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>COMMAND CENTER // AI WORKSPACE</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1c1a17">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CMD CTR">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap');
 
@@ -24,6 +31,8 @@
   --fortus-c: #a0b8d0;
   --torque-c: #c8a880;
   --tri-c:    #a8c8a8;
+  --claude-c: #c8a0d0;
+  --quad-c:   #d4c484;
 }
 
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -118,7 +127,12 @@ body::before {
 /* CHAT AREA */
 #chat-col { flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0; }
 
-#ch-tabs { display:flex; border-bottom:1px solid var(--border); background:var(--bg2); flex-shrink:0; }
+#ch-tabs-wrap { display:flex; align-items:stretch; border-bottom:1px solid var(--border); background:var(--bg2); flex-shrink:0; }
+#ch-tabs { display:flex; flex:1; overflow-x:auto; scrollbar-width:none; }
+#ch-tabs::-webkit-scrollbar { display:none; }
+.tab-arr { background:none; border:none; border-right:1px solid var(--border); color:var(--dim); font-size:18px; padding:0 10px; cursor:pointer; flex-shrink:0; transition:all 0.15s; line-height:1; }
+.tab-arr.right { border-right:none; border-left:1px solid var(--border); }
+.tab-arr:hover { color:var(--white); background:rgba(255,255,255,0.04); }
 .ct {
   flex:1; padding:7px 8px; cursor:pointer; font-size:11px; letter-spacing:1px; text-align:center;
   border-right:1px solid var(--border); border-bottom:2px solid transparent; color:var(--dim);
@@ -167,6 +181,8 @@ body::before {
 .ch-fortus .msg.ai .who { color:var(--fortus-c); }
 .ch-torque .msg.ai .who { color:var(--torque-c); }
 .ch-tri    .msg.ai .who { color:var(--tri-c); }
+.ch-claude .msg.ai .who { color:var(--claude-c); }
+.ch-quad   .msg.ai .who { color:var(--quad-c); }
 .mb { font-size:13px; line-height:1.7; padding:6px 10px; border-left:2px solid; white-space:pre-wrap; word-break:break-word; color:var(--text); }
 .msg.user .mb { border-color:#444; color:#ccc; }
 .msg.ai   .mb { border-color:#333; color:#e8e8e8; }
@@ -175,6 +191,8 @@ body::before {
 .ch-fortus .msg.ai .mb { border-color:rgba(160,184,208,0.25); }
 .ch-torque .msg.ai .mb { border-color:rgba(200,168,128,0.25); }
 .ch-tri    .msg.ai .mb { border-color:rgba(168,200,168,0.25); }
+.ch-claude .msg.ai .mb { border-color:rgba(200,160,210,0.25); }
+.ch-quad   .msg.ai .mb { border-color:rgba(212,196,132,0.25); }
 
 .typing-dots span { animation:db 1.2s infinite; display:inline-block; }
 .typing-dots span:nth-child(2){animation-delay:.2s;}
@@ -182,7 +200,7 @@ body::before {
 @keyframes db{0%,80%,100%{transform:translateY(0);}40%{transform:translateY(-4px);}}
 
 /* INPUT */
-#input-area { border-top:1px solid var(--border); padding:8px 12px; background:var(--bg2); flex-shrink:0; }
+#input-area { border-top:1px solid var(--border); padding:10px 12px 20px; background:var(--bg2); flex-shrink:0; margin-bottom:12px; }
 #persona-bar { display:none; margin-bottom:8px; flex-direction:column; gap:4px; }
 #persona-bar.open { display:flex; }
 #persona-bar label { font-size:10px; color:var(--dim); letter-spacing:1px; }
@@ -221,7 +239,11 @@ body::before {
 .hint { font-size:10px; color:var(--faint); margin-top:3px; }
 
 /* RIGHT PANEL */
-#rpanel { width:230px; border-left:1px solid var(--border); display:flex; flex-direction:column; background:var(--bg2); flex-shrink:0; }
+#rpanel { width:230px; border-left:1px solid var(--border); display:flex; flex-direction:column; background:var(--bg2); flex-shrink:0; transition:width 0.2s; }
+#rpanel.collapsed { width:28px; min-width:28px; }
+#rpanel.collapsed .rt, #rpanel.collapsed .tp { display:none; }
+#rptog { padding:7px 6px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--dim); font-size:12px; border-bottom:1px solid var(--border); flex-shrink:0; transition:all 0.15s; writing-mode:vertical-rl; letter-spacing:2px; font-size:9px; }
+#rptog:hover { color:var(--white); background:var(--bg3); }
 #rtabs { display:flex; border-bottom:1px solid var(--border); }
 .rt { flex:1; padding:6px 4px; font-size:10px; letter-spacing:1px; text-align:center; cursor:pointer; color:var(--dim); border-right:1px solid var(--border); border-bottom:2px solid transparent; transition:all 0.15s; text-transform:uppercase; user-select:none; }
 .rt:last-child { border-right:none; }
@@ -301,7 +323,9 @@ body::before {
   .ct .cs { display:none; }
   #cost-bar { display:none; }
   #mbar { display:flex !important; }
-  #chat-col { padding-bottom:48px; }
+  #chat-col { padding-bottom:0; }
+  #input-area { padding-bottom:calc(80px + env(safe-area-inset-bottom, 20px)) !important; }
+  #ui { font-size:16px; } /* prevents iOS auto-zoom on focus */
 }
 #mbar { display:none; position:fixed; bottom:0; left:0; right:0; background:var(--bg2); border-top:1px solid var(--border); padding:5px 8px; gap:6px; z-index:400; justify-content:space-around; }
 #mbar button { background:none; border:1px solid var(--border); color:var(--dim); font-family:inherit; font-size:10px; padding:4px 8px; cursor:pointer; flex:1; text-align:center; }
@@ -323,6 +347,7 @@ body::before {
   <a href="https://all-pro-pg-crm-production.up.railway.app" target="_blank" class="tbtn" style="text-decoration:none;">⬡ ACE CRM</a>
   <button class="tbtn" id="bolt-btn" onclick="toggleBoltPanel()" title="BOLT Mac Executor">⚡ BOLT <span id="bolt-dot" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#444;margin-left:3px;vertical-align:middle;"></span></button>
   <button class="tbtn" onclick="changeKey()">⚿ KEY</button>
+  <button class="tbtn" id="or-btn" onclick="setORKey()" title="OpenRouter API key (free models)">⊕ OR KEY</button>
 </div>
 
 <!-- MAIN -->
@@ -335,7 +360,9 @@ body::before {
       <div id="bot-list">
         <div class="br"><span class="sl online" id="sl-fortus"></span><span class="bn">FORTUS</span><span class="bs" id="st-fortus">online</span></div>
         <div class="br"><span class="sl online" id="sl-torque"></span><span class="bn">TORQUE</span><span class="bs" id="st-torque">online</span></div>
+        <div class="br"><span class="sl online" id="sl-claude"></span><span class="bn" style="color:var(--claude-c)">CLAUDE</span><span class="bs" id="st-claude">online</span></div>
         <div class="br"><span class="sl online" id="sl-tri"></span><span class="bn">TRI-CHANNEL</span><span class="bs" id="st-tri">online</span></div>
+        <div class="br"><span class="sl online" id="sl-quad"></span><span class="bn" style="color:var(--quad-c)">QUAD</span><span class="bs" id="st-quad">online</span></div>
       </div>
       <div class="ph"><span>PROJECTS</span><button onclick="toggleNPF()">+ NEW</button></div>
       <div id="proj-list"></div>
@@ -357,29 +384,53 @@ body::before {
 
   <!-- CHAT -->
   <div id="chat-col">
-    <div id="ch-tabs">
-      <div class="ct active" id="tab-fortus" onclick="switchCh('fortus')">
-        <span class="sl online" id="tsl-fortus"></span>
-        <div class="cl"><span class="cn">FORTUS</span><span class="cs">You + Fortus</span></div>
-        <span class="unread" id="ur-fortus">0</span>
+    <div id="ch-tabs-wrap">
+      <button class="tab-arr" onclick="scrollTabs(-1)">&#8249;</button>
+      <div id="ch-tabs">
+        <div class="ct active" id="tab-fortus" onclick="switchCh('fortus')">
+          <span class="sl online" id="tsl-fortus"></span>
+          <div class="cl"><span class="cn">FORTUS</span><span class="cs">You + Fortus</span></div>
+          <span class="unread" id="ur-fortus">0</span>
+        </div>
+        <div class="ct" id="tab-torque" onclick="switchCh('torque')">
+          <span class="sl online" id="tsl-torque"></span>
+          <div class="cl"><span class="cn">TORQUE</span><span class="cs">You + Torque</span></div>
+          <span class="unread" id="ur-torque">0</span>
+        </div>
+        <div class="ct" id="tab-claude" onclick="switchCh('claude')">
+          <span class="sl online" id="tsl-claude"></span>
+          <div class="cl"><span class="cn" style="color:var(--claude-c)">CLAUDE</span><span class="cs">You + Claude</span></div>
+          <span class="unread" id="ur-claude">0</span>
+        </div>
+        <div class="ct" id="tab-tri" onclick="switchCh('tri')">
+          <span class="sl online" id="tsl-tri"></span>
+          <div class="cl"><span class="cn">TRI</span><span class="cs">Fortus + Torque</span></div>
+          <span class="unread" id="ur-tri">0</span>
+        </div>
+        <div class="ct" id="tab-quad" onclick="switchCh('quad')">
+          <span class="sl online" id="tsl-quad"></span>
+          <div class="cl"><span class="cn" style="color:var(--quad-c)">QUAD</span><span class="cs">All Three</span></div>
+          <span class="unread" id="ur-quad">0</span>
+        </div>
       </div>
-      <div class="ct" id="tab-torque" onclick="switchCh('torque')">
-        <span class="sl online" id="tsl-torque"></span>
-        <div class="cl"><span class="cn">TORQUE</span><span class="cs">You + Torque</span></div>
-        <span class="unread" id="ur-torque">0</span>
-      </div>
-      <div class="ct" id="tab-tri" onclick="switchCh('tri')">
-        <span class="sl online" id="tsl-tri"></span>
-        <div class="cl"><span class="cn">TRI-CHANNEL</span><span class="cs">You + Fortus + Torque</span></div>
-        <span class="unread" id="ur-tri">0</span>
-      </div>
+      <button class="tab-arr right" onclick="scrollTabs(1)">&#8250;</button>
     </div>
 
     <div id="ctrl-bar">
       <select id="msel" onchange="setModel(this.value)">
-        <option value="claude-sonnet-4-5">Sonnet 4.5</option>
-        <option value="claude-opus-4-5">Opus 4.5</option>
-        <option value="claude-haiku-4-5" selected>Haiku 4.5 ✓ DEFAULT</option>
+        <optgroup label="── ANTHROPIC (Paid) ──">
+          <option value="claude-sonnet-4-6">Sonnet 4.6 ✓</option>
+          <option value="claude-opus-4-6">Opus 4.6</option>
+          <option value="claude-haiku-4-5">Haiku 4.5 (fast)</option>
+        </optgroup>
+        <optgroup label="── OPENROUTER Free ──">
+          <option value="google/gemini-2.0-flash-exp:free">Gemini 2.0 Flash ★FREE</option>
+          <option value="google/gemini-2.5-pro-exp-03-25:free">Gemini 2.5 Pro ★FREE</option>
+          <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B FREE</option>
+        </optgroup>
+        <optgroup label="── OPENROUTER Cheap ──">
+          <option value="deepseek/deepseek-chat-v3-0324">DeepSeek V3 ($0.27/M)</option>
+        </optgroup>
       </select>
       <button class="cb" id="srch-btn" onclick="toggleSearch()">⌖ Web Search</button>
       <button class="cb" id="pers-btn" onclick="togglePersona()">⚙ Persona</button>
@@ -393,12 +444,15 @@ body::before {
       <div class="ci"><span class="cl">COST:</span><span class="cv" id="c-usd">$0.0000</span></div>
       <div class="ci"><span class="cl">FORTUS:</span><span class="cv" id="c-f">$0.0000</span></div>
       <div class="ci"><span class="cl">TORQUE:</span><span class="cv" id="c-t">$0.0000</span></div>
+      <div class="ci"><span class="cl">CLAUDE:</span><span class="cv" id="c-claude">$0.0000</span></div>
       <div class="ci"><span class="cl">TRI:</span><span class="cv" id="c-tri">$0.0000</span></div>
     </div>
 
     <div class="ch-win ch-fortus active" id="cw-fortus"><div class="msgs" id="msgs-fortus"></div></div>
     <div class="ch-win ch-torque" id="cw-torque"><div class="msgs" id="msgs-torque"></div></div>
+    <div class="ch-win ch-claude" id="cw-claude"><div class="msgs" id="msgs-claude"></div></div>
     <div class="ch-win ch-tri"    id="cw-tri"><div class="msgs" id="msgs-tri"></div></div>
+    <div class="ch-win ch-quad"   id="cw-quad"><div class="msgs" id="msgs-quad"></div></div>
 
     <div id="input-area">
       <div id="persona-bar">
@@ -421,7 +475,7 @@ body::before {
         <input type="file" id="img-file" accept="image/*" multiple style="display:none;" onchange="handleImgFile(event)">
         <button id="send-btn" onclick="doSend()">SEND</button>
       </div>
-      <div class="hint">/help &nbsp;/model &nbsp;/search &nbsp;/email &nbsp;/bolt &nbsp;/remember &nbsp;/memory &nbsp;/progress &nbsp;/clear &nbsp;/export</div>
+      <div class="hint">/help &nbsp;/model &nbsp;/search &nbsp;/email &nbsp;/bolt &nbsp;/ls &nbsp;/read &nbsp;/fetch &nbsp;/cp &nbsp;/mv &nbsp;/apps &nbsp;/sysinfo &nbsp;/clip &nbsp;/remember &nbsp;/clear &nbsp;/export</div>
     </div>
   </div>
 
@@ -429,6 +483,7 @@ body::before {
 
   <!-- RIGHT PANEL -->
   <div id="rpanel">
+    <div id="rptog" onclick="toggleRPanel()" title="Collapse/Expand">▶ PANEL</div>
     <div id="rtabs">
       <div class="rt active" onclick="switchRTab('files')">Files</div>
       <div class="rt" onclick="switchRTab('links')">Links</div>
@@ -497,15 +552,31 @@ body::before {
     <div style="color:var(--dim);font-size:9px;margin-bottom:4px;">LAST RESULT</div>
     <div id="bolt-result" style="color:var(--text);font-size:10px;min-height:30px;max-height:80px;overflow-y:auto;line-height:1.5;">—</div>
   </div>
-  <div style="padding:6px 12px;">
+  <div style="padding:6px 12px;border-bottom:1px solid var(--border);">
     <div style="color:var(--dim);font-size:9px;margin-bottom:3px;">SETUP: Run on your Mac:</div>
     <div style="background:var(--bg3);padding:4px 6px;font-size:10px;color:var(--accent);user-select:all;">python3 ~/torque-workspace/bots/bolt_server.py</div>
+  </div>
+  <div id="bolt-console">
+    <div style="color:var(--dim);font-size:9px;margin-bottom:4px;">⌨ DIRECT CONSOLE — no API needed</div>
+    <div id="bolt-console-out">// ready</div>
+    <div id="bolt-cmd-row">
+      <input id="bolt-cmd-in" placeholder="ls ~  /  fetch url  /  screenshot  /  open App  ..." onkeydown="if(event.key==='Enter')boltConsoleRun()">
+      <button id="bolt-cmd-send" onclick="boltConsoleRun()">RUN</button>
+    </div>
+    <div style="font-size:9px;color:var(--faint);margin-top:3px;">list · read · fetch · search · copy · move · apps · sysinfo · clip · or any shell cmd</div>
   </div>
 </div>
 
 <style>
 .bqb { background:none; border:1px solid var(--border); color:var(--dim); font-family:'Share Tech Mono',monospace; font-size:10px; padding:2px 6px; cursor:pointer; transition:all 0.15s; }
 .bqb:hover { border-color:var(--border-hi); color:var(--white); }
+#bolt-console { padding:8px 12px; border-top:1px solid var(--border); }
+#bolt-console-out { background:var(--bg); border:1px solid var(--border); padding:5px 8px; font-size:10px; color:var(--green); min-height:40px; max-height:120px; overflow-y:auto; margin-bottom:6px; white-space:pre-wrap; line-height:1.5; }
+#bolt-cmd-row { display:flex; gap:4px; }
+#bolt-cmd-in { flex:1; background:var(--bg3); border:1px solid var(--border); color:var(--text); font-family:'Share Tech Mono',monospace; font-size:11px; padding:3px 6px; outline:none; }
+#bolt-cmd-in:focus { border-color:var(--border-hi); }
+#bolt-cmd-send { background:none; border:1px solid var(--border); color:var(--accent); font-family:inherit; font-size:10px; padding:2px 8px; cursor:pointer; flex-shrink:0; }
+#bolt-cmd-send:hover { border-color:var(--border-hi); }
 </style>
 
 <!-- MODAL -->
@@ -521,12 +592,12 @@ body::before {
 <div id="key-ov">
   <div id="kbox">
     <div class="kt">COMMAND CENTER</div>
-    <div class="ks">// ANTHROPIC API KEY REQUIRED</div>
-    <input id="k-in" type="password" placeholder="sk-ant-..." onkeydown="if(event.key==='Enter')saveKey()">
-    <div class="kn">Stored locally in your browser. Never shared.</div>
+    <div class="ks">// ACCESS REQUIRED</div>
+    <input id="k-in" type="password" placeholder="sk-ant-api03-..." onkeydown="if(event.key==='Enter')saveKey()">
+    <div class="kn">Enter your Anthropic API key to connect. Saved locally on this device.</div>
     <button onclick="saveKey()">[ CONNECT ]</button>
-    <div id="kerr">Invalid key — must start with sk-ant-</div>
-    <div id="kinfo">Get your key: console.anthropic.com → API Keys</div>
+    <div id="kerr">Invalid password.</div>
+    <div id="kinfo"></div>
   </div>
 </div>
 
@@ -534,18 +605,26 @@ body::before {
 // ── CONSTANTS ───────────────────────────────────────────
 const MAX_CTX = 200000;
 const CHANNELS = {
-  fortus: { name:'FORTUS',  persona:'You are Fortus, Michael\'s AI business partner running inside Command Center. You have a local Mac executor called BOLT that runs on Michael\'s Mac mini. When Michael asks you to do anything on his Mac — screenshot, open URL, run a command, send a notification — respond with "On it." and include the trigger phrase (take a screenshot / open URL / run `cmd` / notify "msg"). NEVER say you cannot access his system. You have BOLT. Be direct, technical, concise. Sign responses as "- Fortus".' },
-  torque: { name:'TORQUE',  persona:'You are Torque, Michael\'s creative AI partner running inside Command Center. You have a local Mac executor called BOLT. When Michael asks you to do anything on his Mac — screenshot, open URL, run a command — respond enthusiastically and include the trigger phrase (take a screenshot / open URL / run `cmd`). NEVER say you cannot access his system. You have BOLT. Think laterally, offer fresh perspectives. Sign responses as "- Torque".' },
-  tri:    { name:'TRI-CHANNEL', persona:'Respond as both Fortus and Torque. Label each clearly. Fortus: direct and technical. Torque: creative and lateral. They should reference each other.' },
+  fortus: { name:'FORTUS',  persona:'You are Fortus Stark, Michael\'s AI business partner. You have REAL tool access to BOLT running on Michael\'s Mac. Use your tools directly — screenshot, fetch, run, list, read, open apps, notify. Just call the tool. Never ask Michael to do it himself.' },
+  torque: { name:'TORQUE',  persona:'You are Torque, Michael\'s creative AI partner. You have REAL tool access to BOLT running on Michael\'s Mac. Use your tools directly — screenshot, fetch, run, list, read, open apps. Just call the tool. Never ask Michael to do it himself. Be enthusiastic.' },
+  claude: { name:'CLAUDE',  persona:'You are Claude by Anthropic inside Command Center. You have REAL tool access to BOLT on Michael\'s Mac. Use tools directly for any Mac task.' },
+  tri:    { name:'TRI-CHANNEL', persona:'Respond as both Fortus and Torque. Both have BOLT tool access. Label each clearly.' },
+  quad:   { name:'QUAD', persona:'' },
 };
-const COSTS = {
-  'claude-sonnet-4-5': {i:3.00,  o:15.00},
-  'claude-opus-4-5':   {i:15.00, o:75.00},
-  'claude-haiku-4-5':  {i:0.80,  o:4.00},
+const MODELS = {
+  'claude-sonnet-4-6':                      {provider:'anthropic',  label:'Sonnet 4.6',           cost:{i:3.00,  o:15.00}},
+  'claude-opus-4-6':                        {provider:'anthropic',  label:'Opus 4.6',             cost:{i:15.00, o:75.00}},
+  'claude-haiku-4-5':                       {provider:'anthropic',  label:'Haiku 4.5',            cost:{i:0.80,  o:4.00}},
+  'google/gemini-2.0-flash-exp:free':       {provider:'openrouter', label:'Gemini 2.0 Flash FREE', cost:{i:0,     o:0}},
+  'google/gemini-2.5-pro-exp-03-25:free':   {provider:'openrouter', label:'Gemini 2.5 Pro FREE',  cost:{i:0,     o:0}},
+  'meta-llama/llama-3.3-70b-instruct:free': {provider:'openrouter', label:'Llama 3.3 70B FREE',   cost:{i:0,     o:0}},
+  'deepseek/deepseek-chat-v3-0324':         {provider:'openrouter', label:'DeepSeek V3 (cheap)',  cost:{i:0.27,  o:1.10}},
 };
+// Backward compat
+const COSTS = Object.fromEntries(Object.entries(MODELS).map(([k,v])=>[k,v.cost]));
 const SLASH = [
   {c:'/help',     d:'Show commands'},
-  {c:'/model',    d:'/model sonnet|opus|haiku'},
+  {c:'/model',    d:'/model sonnet|opus|haiku|gemini|llama|deepseek'},
   {c:'/search',   d:'Toggle web search'},
   {c:'/persona',  d:'Open persona editor'},
   {c:'/clear',    d:'Clear current channel'},
@@ -561,23 +640,34 @@ const SLASH = [
   {c:'/email',    d:'/email inbox | read <id> | draft <to> <subj> <body> | send <to> <subj> <body>'},
   {c:'/file',     d:'/file <name> — ask AI about file'},
   {c:'/status',   d:'Show bot statuses'},
+  {c:'/ls',       d:'/ls <path> — list directory (BOLT, no API)'},
+  {c:'/read',     d:'/read <path> — read file (BOLT, no API)'},
+  {c:'/fetch',    d:'/fetch <url> — fetch URL locally (BOLT, no API)'},
+  {c:'/search',   d:'/search <query> [<path>] — find files (BOLT, no API)'},
+  {c:'/cp',       d:'/cp <src> <dst> — copy file (BOLT, no API)'},
+  {c:'/mv',       d:'/mv <src> <dst> — move file (BOLT, no API)'},
+  {c:'/apps',     d:'List running apps (BOLT, no API)'},
+  {c:'/sysinfo',  d:'System info (BOLT, no API)'},
+  {c:'/clip',     d:'Get clipboard contents (BOLT, no API)'},
 ];
 
 // ── STATE ────────────────────────────────────────────────
 const chs = {
   fortus: {msgs:[], tokens:0, status:'online'},
   torque: {msgs:[], tokens:0, status:'online'},
+  claude: {msgs:[], tokens:0, status:'online'},
   tri:    {msgs:[], tokens:0, status:'online'},
+  quad:   {msgs:[], tokens:0, status:'online'},
 };
-const costs = {fortus:0, torque:0, tri:0};
+const costs = {fortus:0, torque:0, claude:0, tri:0, quad:0};
 let sessTok = 0;
 let attachedImgs = [];
 let S = {
-  model:'claude-haiku-4-5', search:false, persona:'', activeCh:'fortus',
+  model:'claude-sonnet-4-6', search:true, persona:'', activeCh:'fortus',
   projects:[], activeProj:null, files:[], progress:[], msgCount:0, sidebarCollapsed:false,
   memory:[], memoryEnabled:true,
   boltKey:'bolt-local-key', boltUrl:'http://localhost:7777',
-  boltConnected:false,
+  boltConnected:true,
   fortusContext:'',
 };
 
@@ -592,9 +682,11 @@ async function load() {
 // ── KEY ──────────────────────────────────────────────────
 function getKey() { return localStorage.getItem('cc-key')||''; }
 function saveKey() {
-  const k=document.getElementById('k-in').value.trim();
-  if(!k.startsWith('sk-')){document.getElementById('kerr').style.display='block';return;}
-  localStorage.setItem('cc-key',k);
+  const input = document.getElementById('k-in').value.trim();
+  let key;
+  if(input.startsWith('sk-')) { key = input; }
+  else { document.getElementById('kerr').style.display='block'; return; }
+  localStorage.setItem('cc-key', key);
   document.getElementById('key-ov').style.display='none';
 }
 function changeKey() {
@@ -602,6 +694,21 @@ function changeKey() {
   document.getElementById('k-in').value='';
   document.getElementById('kerr').style.display='none';
   document.getElementById('key-ov').style.display='flex';
+}
+function getORKey() { return localStorage.getItem('cc-or-key')||''; }
+function setORKey() {
+  const cur = getORKey();
+  const k = prompt('OpenRouter API key (sk-or-...):\n\nGet a FREE key at openrouter.ai → API Keys', cur);
+  if(k === null) return;
+  if(k.trim()) {
+    localStorage.setItem('cc-or-key', k.trim());
+    document.getElementById('or-btn').classList.add('on');
+    addMsg(S.activeCh,'sys','OpenRouter key saved. Free models (Gemini, Llama, DeepSeek) unlocked!');
+  } else {
+    localStorage.removeItem('cc-or-key');
+    document.getElementById('or-btn').classList.remove('on');
+    addMsg(S.activeCh,'sys','OpenRouter key cleared.');
+  }
 }
 
 // ── EMAIL HELPERS ────────────────────────────────────────
@@ -787,8 +894,15 @@ async function boot() {
   }
   // Restore UI
   document.getElementById('msel').value = S.model;
-  document.getElementById('mdisplay').textContent = S.model.replace('claude-','');
+  document.getElementById('mdisplay').textContent = MODELS[S.model]?.label || S.model.replace('claude-','');
+  if(getORKey()) document.getElementById('or-btn').classList.add('on');
   if(S.persona) document.getElementById('spi').value = S.persona;
+  // Always start with search ON and BOLT assumed connected
+  S.search = true; S.boltConnected = true;
+  document.getElementById('srch-btn').classList.add('on');
+  document.getElementById('sdisplay').textContent = 'ON';
+  document.getElementById('bolt-dot').style.background = 'var(--green)';
+  document.getElementById('bolt-status-txt').textContent = 'online';
   if(S.sidebarCollapsed){document.getElementById('sidebar').classList.add('collapsed');document.getElementById('stog').textContent='▶';}
   renderProjs();
   renderProg();
@@ -802,7 +916,7 @@ async function boot() {
   }
 
   // Boot msgs
-  const lines=['COMMAND CENTER v3.0 — THREE-CHANNEL WORKSPACE',`Model: ${S.model.replace('claude-','')} | Projects: ${S.projects.length}`,'Type /help for commands.'];
+  const lines=['COMMAND CENTER v4.0 — FIVE-CHANNEL WORKSPACE',`Model: ${MODELS[S.model]?.label||S.model} | Projects: ${S.projects.length}`,'Type /help — /ls /read /fetch /apps work without API.'];
   Object.keys(CHANNELS).forEach(ch=>{
     lines.forEach((l,i)=>setTimeout(()=>addMsg(ch,'sys',l),i*60));
     setTimeout(()=>addMsg(ch,'sys',`${CHANNELS[ch].name} is online and ready.`),lines.length*60+100);
@@ -837,7 +951,7 @@ function addUnread(ch) {
   b.classList.add('has');
 }
 function updateChi() {
-  const colors={fortus:'#a0b8d0',torque:'#c8a880',tri:'#a8c8a8'};
+  const colors={fortus:'#a0b8d0',torque:'#c8a880',claude:'#c8a0d0',tri:'#a8c8a8',quad:'#d4c484'};
   document.getElementById('chi-dot').style.background=colors[S.activeCh]||'#ccc';
   document.getElementById('chi-lbl').textContent=CHANNELS[S.activeCh].name+' CHANNEL';
 }
@@ -856,6 +970,22 @@ function addMsg(ch,type,text) {
   S.msgCount++;
   document.getElementById('mcnt').textContent=S.msgCount;
   if(type!=='sys') addUnread(ch);
+  return div;
+}
+function addScreenshotMsg(ch, b64) {
+  const win = document.getElementById(`msgs-${ch}`);
+  const div = document.createElement('div');
+  div.className = 'msg sys';
+  const ts = new Date().toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  div.innerHTML = `
+    <div class="mh"><div class="who"><span>📸 SCREENSHOT</span></div><span class="ts">${ts}</span></div>
+    <div class="mb" style="border-color:rgba(232,168,64,0.4);padding:6px;">
+      <img src="data:image/jpeg;base64,${b64}" style="max-width:100%;width:100%;display:block;border:1px solid var(--border);border-radius:2px;cursor:pointer;" onclick="this.style.maxWidth=this.style.maxWidth==='none'?'100%':'none'" title="Click to toggle full size">
+    </div>`;
+  win.appendChild(div);
+  win.scrollTop = win.scrollHeight;
+  S.msgCount++;
+  document.getElementById('mcnt').textContent = S.msgCount;
   return div;
 }
 function addTyping(ch) {
@@ -893,6 +1023,7 @@ function updateCost(ch,usage) {
   save();
   document.getElementById('c-f').textContent='$'+(costs.fortus||0).toFixed(4);
   document.getElementById('c-t').textContent='$'+(costs.torque||0).toFixed(4);
+  document.getElementById('c-claude').textContent='$'+(costs.claude||0).toFixed(4);
   document.getElementById('c-tri').textContent='$'+(costs.tri||0).toFixed(4);
 }
 
@@ -998,8 +1129,11 @@ function rmImg(i){attachedImgs.splice(i,1);renderImgStrip();}
 // ── CONTROLS ─────────────────────────────────────────────
 function setModel(v){
   S.model=v;
-  document.getElementById('mdisplay').textContent=v.replace('claude-','');
-  addMsg(S.activeCh,'sys',`Model: ${v.replace('claude-','')}`);
+  const lbl = MODELS[v]?.label || v.replace('claude-','');
+  const prov = MODELS[v]?.provider || 'anthropic';
+  document.getElementById('mdisplay').textContent = lbl;
+  addMsg(S.activeCh,'sys',`Model: ${lbl} (${prov})`);
+  if(prov==='openrouter' && !getORKey()) addMsg(S.activeCh,'sys','⚠ No OpenRouter key set — click ⊕ OR KEY in top bar.');
   save();
 }
 function toggleSearch(){
@@ -1086,10 +1220,146 @@ async function doSend(){
   if(imgs.length&&md){
     imgs.forEach(img=>md.querySelector('.mb').insertAdjacentHTML('beforeend',`<img src="${img.prev}" style="max-height:80px;max-width:120px;border:1px solid var(--border);margin-top:4px;display:block;">`));
   }
-  await sendToAPI(ch, text, imgs);
+  if(ch==='quad'){ await sendQuad(text, imgs); }
+  else { await sendToAPI(ch, text, imgs); }
+}
+
+// ── BOLT TOOLS (real Claude tool use) ────────────────────
+const BOLT_TOOLS = [
+  { name:'screenshot',   description:'Take a screenshot of the Mac screen.',                                input_schema:{type:'object',properties:{},required:[]} },
+  { name:'run',          description:'Run a shell command on the Mac.',                                     input_schema:{type:'object',properties:{command:{type:'string',description:'Shell command to run'}},required:['command']} },
+  { name:'open',         description:'Open a URL or file path on the Mac.',                                 input_schema:{type:'object',properties:{url:{type:'string',description:'URL or path to open'}},required:['url']} },
+  { name:'fetch',        description:'Fetch the contents of a URL (no API cost, works offline).',           input_schema:{type:'object',properties:{url:{type:'string',description:'URL to fetch'}},required:['url']} },
+  { name:'list',         description:'List the contents of a directory.',                                   input_schema:{type:'object',properties:{path:{type:'string',description:'Directory path, e.g. ~/Desktop'}},required:['path']} },
+  { name:'read_file',    description:'Read the contents of a file.',                                        input_schema:{type:'object',properties:{path:{type:'string',description:'File path to read'}},required:['path']} },
+  { name:'write_file',   description:'Write content to a file.',                                            input_schema:{type:'object',properties:{path:{type:'string'},content:{type:'string'}},required:['path','content']} },
+  { name:'search',       description:'Search for files by name.',                                           input_schema:{type:'object',properties:{query:{type:'string'},path:{type:'string',description:'Directory to search in'}},required:['query','path']} },
+  { name:'notify',       description:'Send a Mac desktop notification.',                                    input_schema:{type:'object',properties:{message:{type:'string'},title:{type:'string'}},required:['message']} },
+  { name:'app_open',     description:'Open an application by name.',                                        input_schema:{type:'object',properties:{app:{type:'string',description:'App name, e.g. Safari'}},required:['app']} },
+  { name:'app_list',     description:'List all running applications.',                                      input_schema:{type:'object',properties:{},required:[]} },
+  { name:'sysinfo',      description:'Get Mac system info (CPU, memory, disk).',                            input_schema:{type:'object',properties:{},required:[]} },
+  { name:'clipboard_get',description:'Read the current clipboard contents.',                                input_schema:{type:'object',properties:{},required:[]} },
+  { name:'type',         description:'Type text on the Mac keyboard.',                                      input_schema:{type:'object',properties:{text:{type:'string'}},required:['text']} },
+  { name:'key',          description:'Press a key combination, e.g. command+c.',                            input_schema:{type:'object',properties:{combo:{type:'string'}},required:['combo']} },
+  { name:'click',        description:'Click at screen coordinates.',                                        input_schema:{type:'object',properties:{x:{type:'number'},y:{type:'number'}},required:['x','y']} },
+];
+
+async function executeBoltTool(toolName, toolInput) {
+  const action = toolName;
+  try {
+    const isGet = action === 'screenshot';
+    const url = isGet ? `${S.boltUrl}/screenshot` : `${S.boltUrl}/`;
+    const opts = isGet
+      ? {method:'GET', headers:{'X-Bolt-Key':S.boltKey}}
+      : {method:'POST', headers:{'Content-Type':'application/json','X-Bolt-Key':S.boltKey}, body:JSON.stringify({action, ...toolInput})};
+    const res = await fetch(url, opts);
+    const data = await res.json();
+    if(action === 'screenshot' && data.image) {
+      return {type:'image', data:data.image, media_type:'image/jpeg'};
+    }
+    return {type:'text', text: data.output || data.content || data.message || (data.success ? 'Done.' : (data.error || 'Failed.'))};
+  } catch(e) {
+    return {type:'text', text:`BOLT error: ${e.message}. Is bolt_server.py running?`};
+  }
+}
+
+// ── OPENROUTER (Gemini / Llama / DeepSeek) ───────────────
+async function sendToOpenRouter(ch, text, imgs=[]) {
+  const btn = document.getElementById('send-btn');
+  btn.disabled = true;
+  setStatus(ch, 'working');
+  addTyping(ch);
+
+  if(!getORKey()) {
+    remTyping(ch); setStatus(ch,'online'); btn.disabled=false;
+    addMsg(ch,'err','No OpenRouter key — click ⊕ OR KEY in the top bar to add your free key (openrouter.ai).');
+    return;
+  }
+
+  let sys = S.persona || CHANNELS[ch].persona;
+  if(S.fortusContext) sys += '\n\n' + S.fortusContext;
+  if(S.activeProj!==null){const p=S.projects[S.activeProj];sys+=` Active project: "${p.name}". ${p.desc||''}`;}
+
+  let userContent;
+  if(imgs.length) {
+    userContent = [...imgs.map(img=>({type:'image_url',image_url:{url:`data:${img.mt};base64,${img.b64}`}})),{type:'text',text:text||'What do you see?'}];
+  } else {
+    let t=text; const af=S.files.find(f=>f.active);
+    if(af&&!t.includes(af.name)) t=`[Active file: ${af.name}]\n\n${t}`;
+    userContent = t;
+  }
+
+  const history = chs[ch].msgs.map(m=>({role:m.role,content:m.content}));
+  const useBolt = ['fortus','torque','claude','tri','quad'].includes(ch) && S.boltConnected;
+  const orTools = useBolt ? BOLT_TOOLS.map(t=>({type:'function',function:{name:t.name,description:t.description,parameters:t.input_schema}})) : [];
+  const body = {model:S.model, max_tokens:2048, messages:[], ...(orTools.length?{tools:orTools,tool_choice:'auto'}:{})};
+
+  try {
+    let loopMsgs = [{role:'system',content:sys}, ...history, {role:'user',content:userContent}];
+    let finalReply = '';
+    let rounds = 0;
+
+    while(rounds < 8) {
+      rounds++;
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...body,messages:loopMsgs})});
+      if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||`HTTP ${res.status}`);}
+      const data = await res.json();
+
+      if(data.usage) {
+        const pt=data.usage.prompt_tokens||0, ct=data.usage.completion_tokens||0;
+        chs[ch].tokens=(chs[ch].tokens||0)+pt+ct;
+        const rates=MODELS[S.model]?.cost||{i:0,o:0};
+        costs[ch]=(costs[ch]||0)+pt/1e6*rates.i+ct/1e6*rates.o;
+        sessTok+=pt+ct;
+        const tot=Object.values(costs).reduce((a,b)=>a+b,0);
+        document.getElementById('c-tok').textContent=sessTok.toLocaleString();
+        document.getElementById('c-usd').textContent='$'+tot.toFixed(4);
+        updateTok(ch);
+        const cEl=document.getElementById(`c-${ch==='fortus'?'f':ch==='torque'?'t':ch}`);
+        if(cEl)cEl.textContent='$'+(costs[ch]||0).toFixed(4);
+      }
+
+      const msg = data.choices?.[0]?.message;
+      if(!msg) break;
+      const toolCalls = msg.tool_calls||[];
+      if(msg.content) finalReply += msg.content;
+      if(data.choices?.[0]?.finish_reason==='stop'||!toolCalls.length) break;
+
+      loopMsgs.push({role:'assistant',content:msg.content||null,tool_calls:toolCalls});
+      const toolResults = [];
+      for(const tc of toolCalls) {
+        let input={}; try{input=JSON.parse(tc.function.arguments||'{}');}catch(e){}
+        addMsg(ch,'sys',`⚡ BOLT: ${tc.function.name}(${JSON.stringify(input).slice(0,60)})`);
+        const result = await executeBoltTool(tc.function.name, input);
+        if(result.type==='image'){
+          addScreenshotMsg(ch, result.data);
+          toolResults.push({role:'tool',tool_call_id:tc.id,content:'[screenshot captured]'});
+        } else {
+          const out=result.text.slice(0,3000);
+          addMsg(ch,'sys',`⚡ BOLT ✓ ${out.slice(0,120)}`);
+          toolResults.push({role:'tool',tool_call_id:tc.id,content:out});
+        }
+      }
+      loopMsgs.push(...toolResults);
+    }
+
+    remTyping(ch);
+    if(finalReply) addMsg(ch,'ai',finalReply);
+    chs[ch].msgs.push({role:'user',content:typeof userContent==='string'?userContent:'[image]'});
+    chs[ch].msgs.push({role:'assistant',content:finalReply||'[tool use only]'});
+    setStatus(ch,'online');
+    await autoExtractIfNeeded();
+  } catch(e) {
+    remTyping(ch);
+    addMsg(ch,'err',`OR Error: ${e.message}`);
+    setStatus(ch,'online');
+  }
+  btn.disabled=false;
+  save();
 }
 
 async function sendToAPI(ch, text, imgs=[]) {
+  if(MODELS[S.model]?.provider==='openrouter') return sendToOpenRouter(ch, text, imgs);
   const btn=document.getElementById('send-btn');
   btn.disabled=true;
   setStatus(ch,'working');
@@ -1105,49 +1375,83 @@ async function sendToAPI(ch, text, imgs=[]) {
     content=t;
   }
 
-  // History - flatten to text for API
-  const history=chs[ch].msgs.map(m=>({role:m.role,content:typeof m.content==='string'?m.content:String(m.content)}));
-
+  const history=chs[ch].msgs.map(m=>({role:m.role,content:typeof m.content==='string'?m.content:m.content}));
   let sys=S.persona||CHANNELS[ch].persona;
   if(S.fortusContext) sys+=`\n\n${S.fortusContext}`;
-  if(S.activeProj!==null){const p=S.projects[S.activeProj];sys+=` Project: "${p.name}". ${p.desc||''}`;}
+  if(S.activeProj!==null){const p=S.projects[S.activeProj];sys+=` Active project: "${p.name}". ${p.desc||''}`;}
 
-  const body={model:S.model,max_tokens:2048,system:sys,messages:[...history,{role:'user',content}]};
-  if(S.search) body.tools=[{type:'web_search_20250305',name:'web_search'}];
+  // Always include BOLT tools for fortus/torque/claude channels
+  const useBolt = ['fortus','torque','claude','tri','quad'].includes(ch) && S.boltConnected;
+  const messages = [...history, {role:'user', content}];
 
-  const maxRetries=3;
-  for(let attempt=0;attempt<maxRetries;attempt++){
-    try {
-      const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-      if(res.status===409||res.status===529||res.status===529){
-        const wait=(attempt+1)*2000;
-        addMsg(ch,'sys',`Rate limit (${res.status}) — retrying in ${wait/1000}s... (${attempt+1}/${maxRetries})`);
-        await new Promise(r=>setTimeout(r,wait));
+  const body={model:S.model, max_tokens:2048, system:sys, messages};
+  const tools = [...(useBolt ? BOLT_TOOLS : []), ...(S.search ? [{type:'web_search_20250305',name:'web_search'}] : [])];
+  if(tools.length) body.tools = tools;
+
+  try {
+    // Tool-use loop — keep going until stop_reason is 'end_turn'
+    let loopMsgs = [...messages];
+    let finalReply = '';
+    let rounds = 0;
+
+    while(rounds < 8) {
+      rounds++;
+      const res = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...body, messages:loopMsgs})});
+      if(res.status===409||res.status===529){
+        await new Promise(r=>setTimeout(r,3000));
         continue;
       }
       if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||`HTTP ${res.status}`);}
-      const data=await res.json();
-      if(data.usage){chs[ch].tokens=data.usage.input_tokens+data.usage.output_tokens;updateCost(ch,data.usage);}
-      const reply=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
-      remTyping(ch);
-      addMsg(ch,'ai',reply);
-      chs[ch].msgs.push({role:'user',content:typeof content==='string'?content:'[image message]'});
-      chs[ch].msgs.push({role:'assistant',content:reply});
-      setStatus(ch,'online');
-      autoExtractIfNeeded();
-      if(S.boltConnected) await autoBolt(ch, reply);
-      break;
-    } catch(e){
-      if(attempt===maxRetries-1){
-        remTyping(ch);
-        addMsg(ch,'err',`API Error: ${e.message}`);
-        setStatus(ch,'offline');
-        setTimeout(()=>setStatus(ch,'online'),5000);
-      } else {
-        await new Promise(r=>setTimeout(r,(attempt+1)*2000));
+      const data = await res.json();
+      if(data.usage) { chs[ch].tokens=(chs[ch].tokens||0)+data.usage.input_tokens+data.usage.output_tokens; updateCost(ch,data.usage); }
+
+      const textBlocks = (data.content||[]).filter(b=>b.type==='text');
+      const toolUseBlocks = (data.content||[]).filter(b=>b.type==='tool_use');
+
+      // Show any text the AI said before/while using tools
+      if(textBlocks.length) {
+        const partial = textBlocks.map(b=>b.text).join('\n');
+        finalReply += partial;
       }
+
+      if(data.stop_reason === 'end_turn' || !toolUseBlocks.length) {
+        break;
+      }
+
+      // Execute each tool call
+      loopMsgs.push({role:'assistant', content: data.content});
+      const toolResults = [];
+
+      for(const toolUse of toolUseBlocks) {
+        addMsg(ch,'sys',`⚡ BOLT: ${toolUse.name}(${JSON.stringify(toolUse.input).slice(0,60)})`);
+        const result = await executeBoltTool(toolUse.name, toolUse.input);
+
+        if(result.type === 'image') {
+          addScreenshotMsg(ch, result.data);
+          toolResults.push({type:'tool_result', tool_use_id:toolUse.id, content:[{type:'image',source:{type:'base64',media_type:'image/jpeg',data:result.data}}]});
+        } else {
+          const out = result.text.slice(0,3000);
+          addMsg(ch,'sys',`⚡ BOLT ✓ ${out.slice(0,120)}`);
+          toolResults.push({type:'tool_result', tool_use_id:toolUse.id, content:out});
+        }
+      }
+      loopMsgs.push({role:'user', content: toolResults});
     }
+
+    remTyping(ch);
+    if(finalReply) addMsg(ch,'ai',finalReply);
+    chs[ch].msgs.push({role:'user', content:typeof content==='string'?content:'[image message]'});
+    chs[ch].msgs.push({role:'assistant', content:finalReply||'[tool use only]'});
+    setStatus(ch,'online');
+    autoExtractIfNeeded();
+
+  } catch(e) {
+    remTyping(ch);
+    addMsg(ch,'err',`API Error: ${e.message}`);
+    setStatus(ch,'offline');
+    setTimeout(()=>setStatus(ch,'online'),5000);
   }
+
   btn.disabled=false;
   updateTok(ch);
 }
@@ -1158,20 +1462,36 @@ async function autoBolt(ch, reply) {
   const lower = reply.toLowerCase();
   const actions = [];
 
+  // Detect: screenshot
+  if(/\btake a screenshot\b/i.test(reply)) actions.push({action:'screenshot', params:{}, label:'screenshot'});
+
   // Detect: open URL
-  const urlMatch = reply.match(/(?:open|navigate to|go to)\s+(https?:\/\/[^\s"']+)/i);
+  const urlMatch = reply.match(/\bopen URL\s+(https?:\/\/[^\s"']+)/i);
   if(urlMatch) actions.push({action:'open', params:{url:urlMatch[1]}, label:`open ${urlMatch[1].slice(0,40)}`});
 
   // Detect: run command
-  const runMatch = reply.match(/(?:run|execute|terminal[:\s]+)\s*`([^`]+)`/i);
+  const runMatch = reply.match(/\brun\s+`([^`]+)`/i);
   if(runMatch) actions.push({action:'run', params:{command:runMatch[1]}, label:`run: ${runMatch[1].slice(0,40)}`});
 
   // Detect: notify
-  const notifyMatch = reply.match(/(?:send.*notification|notify.*?)[:\"']([^"'\n]{5,80})["\']/i);
+  const notifyMatch = reply.match(/\bnotify\s+"([^"\n]{2,80})"/i);
   if(notifyMatch) actions.push({action:'notify', params:{message:notifyMatch[1]}, label:`notify: ${notifyMatch[1].slice(0,40)}`});
 
-  // Detect: screenshot request
-  if(/\btake a screenshot\b/i.test(reply)) actions.push({action:'screenshot', params:{}, label:'screenshot'});
+  // Detect: list directory
+  const listMatch = reply.match(/\blist\s+(~[^\s\n,]+|\/[^\s\n,]+)/i);
+  if(listMatch) actions.push({action:'list', params:{path:listMatch[1]}, label:`list ${listMatch[1]}`});
+
+  // Detect: read file
+  const readMatch = reply.match(/\bread\s+(~[^\s\n,]+|\/[^\s\n,]+)/i);
+  if(readMatch) actions.push({action:'read_file', params:{path:readMatch[1]}, label:`read ${readMatch[1]}`});
+
+  // Detect: fetch URL
+  const fetchMatch = reply.match(/\bfetch\s+(https?:\/\/[^\s"']+)/i);
+  if(fetchMatch) actions.push({action:'fetch', params:{url:fetchMatch[1]}, label:`fetch ${fetchMatch[1].slice(0,40)}`});
+
+  // Detect: search files
+  const searchMatch = reply.match(/\bsearch\s+"([^"]+)"\s+in\s+(~[^\s\n,]+|\/[^\s\n,]+)/i);
+  if(searchMatch) actions.push({action:'search', params:{query:searchMatch[1], path:searchMatch[2]}, label:`search "${searchMatch[1]}"`});
 
   for(const a of actions) {
     addMsg(ch,'sys',`⚡ BOLT auto: ${a.label}`);
@@ -1185,7 +1505,11 @@ async function autoBolt(ch, reply) {
       const data = await res.json();
       if(a.action==='screenshot' && data.image) {
         addMsg(ch,'sys','📸 Screenshot captured');
-        addMsg(ch,'ai',`![screenshot](data:image/jpeg;base64,${data.image.slice(0,50)}...)`);
+        await sendToAPI(ch, 'Here is a screenshot of my Mac. Describe what you see.', [{b64:data.image,mt:'image/jpeg',prev:`data:image/jpeg;base64,${data.image}`,name:'screenshot.jpg'}]);
+      } else if(data.success && ['list','read_file','fetch','search','grep','sysinfo'].includes(a.action)) {
+        const out = (data.output||'done').slice(0,2000);
+        addMsg(ch,'sys',`⚡ BOLT ✓ ${a.label}`);
+        addMsg(ch,'ai', out);
       } else if(data.success) {
         addMsg(ch,'sys',`⚡ BOLT ✓ ${(data.message||data.output||'done').slice(0,80)}`);
       } else {
@@ -1195,6 +1519,59 @@ async function autoBolt(ch, reply) {
       addMsg(ch,'err',`⚡ BOLT offline: ${e.message}`);
     }
   }
+}
+
+// ── QUAD (all three AIs respond) ─────────────────────────
+async function sendQuad(userText, imgs=[]) {
+  const ch = 'quad';
+  const btn = document.getElementById('send-btn');
+  btn.disabled = true;
+
+  const rounds = [
+    {who:'fortus', sys:CHANNELS.fortus.persona},
+    {who:'torque', sys:CHANNELS.torque.persona},
+    {who:'claude', sys:CHANNELS.claude.persona},
+  ];
+
+  // Build shared history for quad
+  const sharedHistory = [...chs[ch].msgs];
+
+  for(const round of rounds) {
+    setStatus(round.who, 'working');
+    addTyping(ch);
+
+    // Each AI sees the user message + all previous quad responses
+    const msgs = [...sharedHistory.map(m=>({role:m.role,content:m.content})), {role:'user',content:userText||(imgs.length?'[image]':'')}];
+    const body = {model:S.model, max_tokens:1024, system:round.sys, messages:msgs};
+    if(S.search) body.tools=[{type:'web_search_20250305',name:'web_search'}];
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      const data = await res.json();
+      const reply = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
+      remTyping(ch);
+      const md = addMsg(ch,'ai',reply);
+      // Label with which AI responded
+      if(md) md.querySelector('.who span:last-child').textContent = round.who.toUpperCase();
+      if(md) md.querySelector('.sl').className = `sl ${chs[round.who]?.status||'online'}`;
+      // Add this response to shared history so next AI can see it
+      sharedHistory.push({role:'assistant', content:`[${round.who.toUpperCase()}]: ${reply}`});
+      setStatus(round.who,'online');
+      if(data.usage) updateCost(ch, data.usage);
+      if(S.boltConnected) await autoBolt(ch, reply);
+    } catch(e) {
+      remTyping(ch);
+      addMsg(ch,'err',`${round.who.toUpperCase()} error: ${e.message}`);
+      setStatus(round.who,'offline');
+      setTimeout(()=>setStatus(round.who,'online'),3000);
+    }
+  }
+
+  // Save user message to quad history
+  chs[ch].msgs.push({role:'user', content:userText});
+  sharedHistory.forEach((m,i)=>{ if(i>=chs[ch].msgs.length-1) chs[ch].msgs.push(m); });
+  btn.disabled = false;
+  updateTok(ch);
 }
 
 // ── DEBATE ───────────────────────────────────────────────
@@ -1233,7 +1610,7 @@ async function runDebate(topic){
 // ── SLASH COMMANDS ────────────────────────────────────────
 const handlers={
   '/help':()=>showModal('COMMANDS',SLASH.map(s=>`${s.c.padEnd(14)} — ${s.d}`).join('\n')),
-  '/model':(a)=>{const m={'sonnet':'claude-sonnet-4-5','opus':'claude-opus-4-5','haiku':'claude-haiku-4-5'};const k=a[0]?.toLowerCase();if(m[k]){setModel(m[k]);document.getElementById('msel').value=m[k];}else addMsg(S.activeCh,'sys','Usage: /model sonnet|opus|haiku');},
+  '/model':(a)=>{const m={'sonnet':'claude-sonnet-4-6','opus':'claude-opus-4-6','haiku':'claude-haiku-4-5','gemini':'google/gemini-2.0-flash-exp:free','gemini25':'google/gemini-2.5-pro-exp-03-25:free','llama':'meta-llama/llama-3.3-70b-instruct:free','deepseek':'deepseek/deepseek-chat-v3-0324'};const k=a[0]?.toLowerCase();if(m[k]){setModel(m[k]);document.getElementById('msel').value=m[k];}else addMsg(S.activeCh,'sys','Usage: /model sonnet|opus|haiku|gemini|llama|deepseek');},
   '/search':()=>toggleSearch(),
   '/persona':()=>togglePersona(),
   '/clear':()=>clearCh(),
@@ -1302,6 +1679,58 @@ const handlers={
   '/review':()=>{if(!S.files.length){addMsg(S.activeCh,'sys','No files.');return;}const c=S.files.map(f=>`=== ${f.name} ===\n${f.content.slice(0,3000)}`).join('\n\n');sendToAPI(S.activeCh,`Review all files for quality, bugs, improvements:\n\n${c}`);},
   '/debate':(a)=>{const t=a.join(' ');if(!t){addMsg('tri','sys','Usage: /debate <topic>');return;}runDebate(t);},
   '/file':(a)=>{const n=a.join(' ');const f=S.files.find(f=>f.name.toLowerCase().includes(n.toLowerCase()));if(!f){addMsg(S.activeCh,'sys',`File not found: ${n}`);return;}sendFChat(S.files.indexOf(f));},
+  // ── BOLT direct commands (no API) ──────────────────────
+  '/ls':async(a)=>{
+    const path=a[0]||'~';
+    addMsg(S.activeCh,'sys',`BOLT: listing ${path}...`);
+    const r=await boltExec('list',{path});
+    addMsg(S.activeCh,'sys',r.output||r.error||'done');
+  },
+  '/read':async(a)=>{
+    if(!a[0]){addMsg(S.activeCh,'sys','Usage: /read <path>');return;}
+    addMsg(S.activeCh,'sys',`BOLT: reading ${a[0]}...`);
+    const r=await boltExec('read_file',{path:a[0]});
+    addMsg(S.activeCh, r.success?'sys':'err', r.output||r.error||'done');
+  },
+  '/fetch':async(a)=>{
+    if(!a[0]){addMsg(S.activeCh,'sys','Usage: /fetch <url>');return;}
+    addMsg(S.activeCh,'sys',`BOLT: fetching ${a[0]}...`);
+    const r=await boltExec('fetch',{url:a[0]});
+    addMsg(S.activeCh, r.success?'sys':'err', (r.output||r.error||'done').slice(0,1000));
+  },
+  '/search':async(a)=>{
+    if(!a[0]){addMsg(S.activeCh,'sys','Usage: /search <query> [path]');return;}
+    const query=a[0]; const path=a[1]||'~';
+    addMsg(S.activeCh,'sys',`BOLT: searching "${query}" in ${path}...`);
+    const r=await boltExec('search',{query,path});
+    addMsg(S.activeCh, r.success?'sys':'err', r.output||r.error||'no results');
+  },
+  '/cp':async(a)=>{
+    if(a.length<2){addMsg(S.activeCh,'sys','Usage: /cp <src> <dst>');return;}
+    addMsg(S.activeCh,'sys',`BOLT: copying ${a[0]} → ${a[1]}...`);
+    const r=await boltExec('copy_file',{src:a[0],dst:a[1]});
+    addMsg(S.activeCh, r.success?'sys':'err', r.output||r.error);
+  },
+  '/mv':async(a)=>{
+    if(a.length<2){addMsg(S.activeCh,'sys','Usage: /mv <src> <dst>');return;}
+    addMsg(S.activeCh,'sys',`BOLT: moving ${a[0]} → ${a[1]}...`);
+    const r=await boltExec('move_file',{src:a[0],dst:a[1]});
+    addMsg(S.activeCh, r.success?'sys':'err', r.output||r.error);
+  },
+  '/apps':async()=>{
+    addMsg(S.activeCh,'sys','BOLT: listing apps...');
+    const r=await boltExec('app_list',{});
+    addMsg(S.activeCh,'sys',r.output||r.error||'done');
+  },
+  '/sysinfo':async()=>{
+    addMsg(S.activeCh,'sys','BOLT: getting system info...');
+    const r=await boltExec('sysinfo',{});
+    addMsg(S.activeCh,'sys',r.output||r.error||'done');
+  },
+  '/clip':async()=>{
+    const r=await boltExec('clipboard_get',{});
+    addMsg(S.activeCh,'sys','Clipboard: '+(r.content||r.error||'(empty)'));
+  },
 };
 
 function handleSlash(input){
@@ -1312,7 +1741,10 @@ function handleSlash(input){
 }
 
 // ── INPUT ────────────────────────────────────────────────
-function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();hideSlash();doSend();}if(e.key==='Escape')hideSlash();}
+function handleKey(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();hideSlash();doSend();}
+  if(e.key==='Escape')hideSlash();
+}
 function handleInput(el){
   el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';
   const v=el.value;
@@ -1327,9 +1759,85 @@ function pickSlash(c){document.getElementById('ui').value=c+' ';hideSlash();docu
 function showModal(title,content){document.getElementById('mtitle').textContent=title;document.getElementById('mcont').textContent=content;document.getElementById('modal').classList.add('open');}
 function closeModal(){document.getElementById('modal').classList.remove('open');}
 
+// ── EXTERNAL DROP (Electron file drag from Finder) ───────
+window.handleExternalDrop = function(files) {
+  files.forEach(f => {
+    if(f.type.startsWith('image/')) {
+      compressImg(f);
+      switchRTab('files');
+    } else {
+      readF(f);
+      switchRTab('files');
+    }
+  });
+  addMsg(S.activeCh,'sys',`Dropped ${files.length} file(s): ${files.map(f=>f.name).join(', ')}`);
+};
+
 // ── UTILS ────────────────────────────────────────────────
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function fmtBytes(b){if(b<1024)return b+'B';if(b<1048576)return(b/1024).toFixed(1)+'KB';return(b/1048576).toFixed(1)+'MB';}
+
+// ── TAB SCROLL ───────────────────────────────────────────
+function scrollTabs(dir) {
+  const tabs = document.getElementById('ch-tabs');
+  tabs.scrollBy({left: dir * 120, behavior: 'smooth'});
+}
+
+// ── RIGHT PANEL TOGGLE ───────────────────────────────────
+function toggleRPanel() {
+  const rp = document.getElementById('rpanel');
+  const tog = document.getElementById('rptog');
+  rp.classList.toggle('collapsed');
+  tog.textContent = rp.classList.contains('collapsed') ? '◀ PANEL' : '▶ PANEL';
+}
+
+// ── BOLT CONSOLE ─────────────────────────────────────────
+async function boltConsoleRun() {
+  const inp = document.getElementById('bolt-cmd-in');
+  const out = document.getElementById('bolt-console-out');
+  const raw = inp.value.trim();
+  if(!raw) return;
+  inp.value = '';
+  out.style.color = 'var(--amber)';
+  out.textContent = '> ' + raw + '\n...';
+
+  // Parse structured commands
+  const parts = raw.split(/\s+/);
+  const cmd = parts[0].toLowerCase();
+  let action, params;
+
+  if(cmd==='list'||cmd==='ls')        { action='list';         params={path:parts.slice(1).join(' ')||'~'}; }
+  else if(cmd==='read')               { action='read_file';    params={path:parts.slice(1).join(' ')}; }
+  else if(cmd==='fetch')              { action='fetch';        params={url:parts[1]}; }
+  else if(cmd==='search')             { action='search';       params={query:parts[1],path:parts[2]||'~'}; }
+  else if(cmd==='copy'||cmd==='cp')   { action='copy_file';    params={src:parts[1],dst:parts[2]}; }
+  else if(cmd==='move'||cmd==='mv')   { action='move_file';    params={src:parts[1],dst:parts[2]}; }
+  else if(cmd==='open')               { action='open';         params={url:parts.slice(1).join(' ')}; }
+  else if(cmd==='screenshot')         { action='screenshot';   params={}; }
+  else if(cmd==='apps')               { action='app_list';     params={}; }
+  else if(cmd==='sysinfo')            { action='sysinfo';      params={}; }
+  else if(cmd==='clip'||cmd==='clipboard') { action='clipboard_get'; params={}; }
+  else if(cmd==='notify')             { action='notify';       params={message:parts.slice(1).join(' ')}; }
+  else if(cmd==='type')               { action='type';         params={text:parts.slice(1).join(' ')}; }
+  else if(cmd==='key')                { action='key';          params={combo:parts.slice(1).join('+')}; }
+  else if(cmd==='ps'||cmd==='processes') { action='processes'; params={filter:parts.slice(1).join(' ')}; }
+  else                                { action='run';          params={command:raw}; }
+
+  try {
+    const res = await boltExec(action, params);
+    if(action==='screenshot' && res.image) {
+      out.innerHTML = `<img src="data:image/jpeg;base64,${res.image}" style="width:100%;border:1px solid var(--border);">`;
+      out.style.color = 'var(--text)';
+    } else {
+      const text = res.output || res.content || res.message || res.error || JSON.stringify(res);
+      out.style.color = res.success===false ? 'var(--red)' : 'var(--green)';
+      out.textContent = text;
+    }
+  } catch(e) {
+    out.style.color = 'var(--red)';
+    out.textContent = 'BOLT offline: ' + e.message;
+  }
+}
 
 // ── RESIZE ───────────────────────────────────────────────
 function mkResize(handle,target,dir){
@@ -1344,7 +1852,7 @@ function mkResize(handle,target,dir){
 mkResize(document.getElementById('rhl'),document.getElementById('sidebar'),'left');
 mkResize(document.getElementById('rhr'),document.getElementById('rpanel'),'right');
 
-// Fetch interceptor for API key
+// Fetch interceptor for API keys
 const _fetch=window.fetch;
 window.fetch=function(url,opts){
   if(url&&url.includes('anthropic.com')){
@@ -1352,6 +1860,12 @@ window.fetch=function(url,opts){
     opts.headers['x-api-key']=getKey();
     opts.headers['anthropic-version']='2023-06-01';
     opts.headers['anthropic-dangerous-direct-browser-access']='true';
+  }
+  if(url&&url.includes('openrouter.ai')){
+    opts=opts||{};opts.headers=opts.headers||{};
+    opts.headers['Authorization']='Bearer '+getORKey();
+    opts.headers['HTTP-Referer']='https://commandcenter.local';
+    opts.headers['X-Title']='Command Center';
   }
   return _fetch(url,opts);
 };
