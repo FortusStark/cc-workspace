@@ -64,7 +64,12 @@ body::before {
 #topbar {
   display:flex; align-items:center; gap:8px; padding:5px 12px;
   border-bottom:1px solid var(--border); background:var(--bg2); flex-shrink:0; flex-wrap:nowrap;
+  -webkit-app-region: drag;
 }
+#topbar button, #topbar a, #topbar select, #topbar input {
+  -webkit-app-region: no-drag;
+}
+.top-stats { -webkit-app-region: no-drag; }
 .logo { font-family:'VT323',monospace; font-size:22px; color:var(--white); letter-spacing:3px; white-space:nowrap; flex-shrink:0; }
 .logo span { color:var(--dim); }
 .top-stats { display:flex; gap:6px; align-items:center; flex:1; overflow-x:auto; }
@@ -347,7 +352,15 @@ body::before {
   <a href="https://all-pro-pg-crm-production.up.railway.app" target="_blank" class="tbtn" style="text-decoration:none;">⬡ ACE CRM</a>
   <button class="tbtn" id="bolt-btn" onclick="toggleBoltPanel()" title="BOLT Mac Executor">⚡ BOLT <span id="bolt-dot" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#444;margin-left:3px;vertical-align:middle;"></span></button>
   <button class="tbtn" onclick="changeKey()">⚿ KEY</button>
-  <button class="tbtn" id="or-btn" onclick="setORKey()" title="OpenRouter API key (free models)">⊕ OR KEY</button>
+  <button class="tbtn" id="or-btn" onclick="toggleORBar()" title="OpenRouter API key (free models)">⊕ OR KEY</button>
+</div>
+<div id="or-bar" style="display:none;position:fixed;top:36px;right:8px;z-index:500;background:#1a1814;border:1px solid var(--accent);padding:8px 10px;gap:6px;align-items:center;box-shadow:0 4px 16px rgba(0,0,0,0.6);">
+  <div style="font-size:10px;color:var(--dim);margin-bottom:4px;">OPENROUTER KEY — get free key at openrouter.ai</div>
+  <div style="display:flex;gap:6px;">
+    <input id="or-key-in" type="text" placeholder="sk-or-v1-..." style="font-family:inherit;font-size:11px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:4px 8px;width:260px;outline:none;" onkeydown="if(event.key==='Enter')saveORKeyInput();if(event.key==='Escape')toggleORBar();">
+    <button onclick="saveORKeyInput()" style="font-family:inherit;font-size:10px;background:var(--accent);color:#000;border:none;padding:4px 10px;cursor:pointer;letter-spacing:1px;">SAVE</button>
+    <button onclick="toggleORBar()" style="font-family:inherit;font-size:10px;background:transparent;color:var(--dim);border:1px solid var(--border);padding:4px 8px;cursor:pointer;">✕</button>
+  </div>
 </div>
 
 <!-- MAIN -->
@@ -593,8 +606,8 @@ body::before {
   <div id="kbox">
     <div class="kt">COMMAND CENTER</div>
     <div class="ks">// ACCESS REQUIRED</div>
-    <input id="k-in" type="password" placeholder="sk-ant-api03-..." onkeydown="if(event.key==='Enter')saveKey()">
-    <div class="kn">Enter your Anthropic API key to connect. Saved locally on this device.</div>
+    <input id="k-in" type="text" placeholder="sk-ant-api03-... or Command69" autofocus onkeydown="if(event.key==='Enter')saveKey()">
+    <div class="kn">Type <b>Command69</b> or paste your Anthropic API key (sk-ant-...). Saved locally on this device.</div>
     <button onclick="saveKey()">[ CONNECT ]</button>
     <div id="kerr">Invalid password.</div>
     <div id="kinfo"></div>
@@ -672,12 +685,14 @@ let S = {
 };
 
 // ── STORAGE ──────────────────────────────────────────────
-async function save() {
-  try { await window.storage.set('cc-v3', JSON.stringify({projects:S.projects,activeProj:S.activeProj,persona:S.persona,model:S.model,progress:S.progress,sidebarCollapsed:S.sidebarCollapsed,memory:S.memory,memoryEnabled:S.memoryEnabled,costs:costs,sessTok:sessTok})); } catch(e){}
+function save() {
+  try { localStorage.setItem('cc-v3', JSON.stringify({projects:S.projects,activeProj:S.activeProj,persona:S.persona,model:S.model,progress:S.progress,sidebarCollapsed:S.sidebarCollapsed,memory:S.memory,memoryEnabled:S.memoryEnabled,costs:costs,sessTok:sessTok})); } catch(e){}
 }
-async function load() {
-  try { const r=await window.storage.get('cc-v3'); if(r){const d=JSON.parse(r.value);Object.assign(S,d);if(d.costs)Object.assign(costs,d.costs);if(d.sessTok)sessTok=d.sessTok;} } catch(e){}
+function load() {
+  try { const r=localStorage.getItem('cc-v3'); if(r){const d=JSON.parse(r);Object.assign(S,d);if(d.costs)Object.assign(costs,d.costs);if(d.sessTok)sessTok=d.sessTok;} } catch(e){}
 }
+// Save on close
+window.addEventListener('beforeunload', save);
 
 // ── KEY ──────────────────────────────────────────────────
 function getKey() { return localStorage.getItem('cc-key')||''; }
@@ -696,14 +711,22 @@ function changeKey() {
   document.getElementById('key-ov').style.display='flex';
 }
 function getORKey() { return localStorage.getItem('cc-or-key')||''; }
-function setORKey() {
-  const cur = getORKey();
-  const k = prompt('OpenRouter API key (sk-or-...):\n\nGet a FREE key at openrouter.ai → API Keys', cur);
-  if(k === null) return;
-  if(k.trim()) {
-    localStorage.setItem('cc-or-key', k.trim());
+function toggleORBar() {
+  const bar = document.getElementById('or-bar');
+  const open = bar.style.display !== 'none';
+  bar.style.display = open ? 'none' : 'block';
+  if(!open) {
+    document.getElementById('or-key-in').value = getORKey();
+    document.getElementById('or-key-in').focus();
+  }
+}
+function saveORKeyInput() {
+  const k = document.getElementById('or-key-in').value.trim();
+  document.getElementById('or-bar').style.display = 'none';
+  if(k) {
+    localStorage.setItem('cc-or-key', k);
     document.getElementById('or-btn').classList.add('on');
-    addMsg(S.activeCh,'sys','OpenRouter key saved. Free models (Gemini, Llama, DeepSeek) unlocked!');
+    addMsg(S.activeCh,'sys','OpenRouter key saved. Free models unlocked!');
   } else {
     localStorage.removeItem('cc-or-key');
     document.getElementById('or-btn').classList.remove('on');
@@ -891,6 +914,10 @@ async function boot() {
       {name:'ACE OPS STRATEGY',desc:'DentOps estimates + Fortus everything else. Pipeline: Denver Dents→Noah→Keith Werkheiser→Sensei(global)→Mansoor(reseller).',urls:[],created:Date.now()},
     ];
     await save();
+  }
+  // If OR model saved but no OR key, fall back to Anthropic
+  if(MODELS[S.model]?.provider === 'openrouter' && !getORKey()) {
+    S.model = 'claude-sonnet-4-6';
   }
   // Restore UI
   document.getElementById('msel').value = S.model;
