@@ -1,0 +1,12 @@
+{
+  "name": "cc-workspace",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Command Center web app with Railway proxy",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
