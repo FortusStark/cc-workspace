@@ -1705,7 +1705,9 @@ async function extractMemory() {
   const proj=S.activeProj!==null?`Active project: ${S.projects[S.activeProj]?.name}. `:'';
   try {
     const memoryModel = getKey() ? 'claude-haiku-4-5' : S.model;
-    const result = await sendPlainTextRequest({model:memoryModel,max_tokens:400,system:'Extract key facts, decisions, and context from this conversation. Return ONLY a JSON array of strings, no markdown, no explanation. Max 8 items. Each item under 100 chars.',messages:[{role:'user',content:`${proj}Extract memory from:\n\n${conv}`}]});
+    const result = await sendPlainTextRequest({model:memoryModel,max_tokens:400,system:'Extract key facts, decisions, and context from this conversation. Return ONLY a JSON array of strings, no markdown, no explanation. Max 8 items. Each item under 100 chars.',messages:[{role:'user',content:`${proj}Extract memory from:
+
+${conv}`}]});
     const items=JSON.parse(result.text.replace(/```json|```/g,'').trim());
     const newMems=items.map(t=>({text:t,ts:Date.now(),source:'auto'}));
     S.memory=[...newMems,...S.memory].slice(0,50);
@@ -2291,6 +2293,7 @@ async function executeBoltTool(toolName, toolInput) {
 }
 
 // ── OPENROUTER (Gemini / Llama / DeepSeek) ───────────────
+
 function extractOpenRouterText(message) {
   if(!message) return '';
   if(typeof message.content === 'string') return message.content;
@@ -2899,9 +2902,12 @@ async function sendTri(text, imgs=[]) {
       let reply = '';
       if (isOR) {
         if(!getORKey()){remTyping(ch);addMsg(ch,'err','No OpenRouter key — click ⊕ OR KEY in the top bar.');setStatus(p.who.toLowerCase(),'online');continue;}
-        const result = await sendPlainTextRequest({model:S.model, max_tokens:2048, system:p.sys, messages:sharedMsgs});
-        reply = result.text;
-        if(result.usage){const pt=result.usage.input_tokens||0,ct=result.usage.output_tokens||0;chs[ch].tokens=(chs[ch].tokens||0)+pt+ct;const rates=MODELS[S.model]?.cost||{i:0,o:0};costs[ch]=(costs[ch]||0)+pt/1e6*rates.i+ct/1e6*rates.o;sessTok+=pt+ct;document.getElementById('c-tok').textContent=sessTok.toLocaleString();document.getElementById('c-usd').textContent='$'+Object.values(costs).reduce((a,b)=>a+b,0).toFixed(4);updateTok(ch);}
+        const body = {model:S.model, max_tokens:2048, messages:[{role:'system',content:p.sys},...sharedMsgs]};
+        const res = await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+        if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||`HTTP ${res.status}`);}
+        const data = await res.json();
+        reply = data.choices?.[0]?.message?.content || '';
+        if(data.usage){const pt=data.usage.prompt_tokens||0,ct=data.usage.completion_tokens||0;chs[ch].tokens=(chs[ch].tokens||0)+pt+ct;const rates=MODELS[S.model]?.cost||{i:0,o:0};costs[ch]=(costs[ch]||0)+pt/1e6*rates.i+ct/1e6*rates.o;sessTok+=pt+ct;document.getElementById('c-tok').textContent=sessTok.toLocaleString();document.getElementById('c-usd').textContent='$'+Object.values(costs).reduce((a,b)=>a+b,0).toFixed(4);updateTok(ch);}
       } else {
         // Anthropic with BOLT tool loop
         const useBolt = S.boltConnected;
@@ -3040,8 +3046,10 @@ const handlers={
     addMsg(ch,'sys','Generating progress report...');
     try{
       const body={model:S.model,max_tokens:500,system:'Respond ONLY with valid JSON, no markdown, no explanation.',messages:[{role:'user',content:`Generate progress report for "${proj}". Return JSON only: {"summary":"...","pct":50,"meta":"..."}\n\nFiles:\n${fi}\n\nRecent:\n${recent}`}]};
-      const result=await sendPlainTextRequest(body);
-      const d=JSON.parse(result.text.replace(/```json|```/g,'').trim());
+      const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      const data=await res.json();
+      const raw=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+      const d=JSON.parse(raw.replace(/```json|```/g,'').trim());
       S.progress=S.progress.filter(c=>c.title!==proj);
       S.progress.unshift({title:proj,summary:d.summary,pct:Math.min(100,Math.max(0,d.pct)),meta:`${new Date().toLocaleTimeString()} | ${d.meta||''}`});
       renderProg();switchRTab('progress');save();
