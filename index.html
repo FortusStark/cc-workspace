@@ -374,6 +374,7 @@ body::before {
   body { overflow:auto; }
   #main { min-width:0; }
   #nav-sidebar { display:none; }
+  #nav-sidebar.mob-open { display:flex !important; position:fixed; left:0; top:0; bottom:0; z-index:700; width:240px !important; min-width:240px !important; box-shadow:0 0 0 9999px rgba(0,0,0,0.55); }
   #proj-drawer { display:none !important; width:0 !important; min-width:0 !important; }
   #rpanel { display:none; }
   #rpanel.mob-open { display:flex !important; position:fixed; right:0; top:0; bottom:0; z-index:500; width:250px !important; }
@@ -934,7 +935,7 @@ body::before {
 
 <!-- MOBILE BAR -->
 <div id="mbar">
-  <button onclick="toggleMob('sidebar')">☰ PROJ</button>
+  <button onclick="toggleMob('nav-sidebar')">☰ MENU</button>
   <button onclick="toggleMob('rpanel')">⊕ FILES</button>
   <button onclick="window.open('https://all-pro-pg-crm-production.up.railway.app','_blank')">⬡ CRM</button>
   <button onclick="changeKey()">⚿ KEY</button>
@@ -2236,8 +2237,8 @@ function toggleSidebar(){
 function toggleMob(id){
   const el=document.getElementById(id);
   const open=el.classList.contains('mob-open');
-  document.getElementById('sidebar').classList.remove('mob-open');
-  document.getElementById('rpanel').classList.remove('mob-open');
+  document.getElementById('nav-sidebar')?.classList.remove('mob-open');
+  document.getElementById('rpanel')?.classList.remove('mob-open');
   if(!open)el.classList.add('mob-open');
 }
 function switchRTab(tab){
@@ -3748,11 +3749,12 @@ function updateMiniBar(ch) {
 // ── Nav click delegation (reliable alternative to inline onclick on divs) ──
 document.addEventListener('click', function(e) {
   const navItem = e.target.closest('[data-nav]');
-  if (navItem) { switchNav(navItem.dataset.nav); return; }
+  if (navItem) { switchNav(navItem.dataset.nav); document.getElementById('nav-sidebar')?.classList.remove('mob-open'); return; }
   const chTab = e.target.closest('.ct[id^="tab-"]');
   if (chTab) { const ch = chTab.id.replace('tab-', ''); switchCh(ch); return; }
   const mct = e.target.closest('.mct[id^="mct-"]');
   if (mct) { const ch = mct.id.replace('mct-', ''); switchCh(ch); return; }
+  if (e.target.id === 'nav-sidebar') document.getElementById('nav-sidebar')?.classList.remove('mob-open');
 });
 
 function updateSystemPanel() {
