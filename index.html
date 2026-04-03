@@ -2855,14 +2855,14 @@ async function sendQuad(userText, imgs=[]) {
 
     try {
       const result = await sendPlainTextRequest(body);
-      const reply = result.text;
+      const reply = (result.text || '').trim();
       remTyping(ch);
-      addMsg(ch,'ai',reply,round.who.toUpperCase());
+      addMsg(ch,'ai',reply || '[no response]',round.who.toUpperCase());
       // Add this response to shared history so next AI can see it
-      sharedHistory.push({role:'assistant', content:`[${round.who.toUpperCase()}]: ${reply}`});
+      if(reply) sharedHistory.push({role:'assistant', content:reply});
       setStatus(round.who,'online');
       if(result.usage) updateCost(ch, result.usage);
-      await boltIntercept(ch, reply);
+      if(reply) await boltIntercept(ch, reply);
     } catch(e) {
       remTyping(ch);
       addMsg(ch,'err',`${round.who.toUpperCase()} error: ${e.message}`);
