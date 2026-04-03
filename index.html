@@ -23,13 +23,13 @@
   --panel:    #111111;
   --border:   #1a1a1a;
   --border2:  #222222;
-  --border-hi:#333333;
-  --faint:    #1a1a1a;
-  --text:     #a0a0a0;
-  --dim:      #404040;
-  --bright:   #e0e0e0;
-  --white:    #e0e0e0;
-  --accent:   #707070;
+  --border-hi:#4a4a4a;
+  --faint:    #262626;
+  --text:     #d0d0d0;
+  --dim:      #8c8c8c;
+  --bright:   #f3f3f3;
+  --white:    #f3f3f3;
+  --accent:   #d8c089;
   --amber:    #d4a017;
   --red:      #c0392b;
   --green:    #4caf7d;
@@ -394,9 +394,9 @@ body::before {
   #chat-col { padding-bottom:0; }
   #ui { font-size:16px; } /* prevents iOS auto-zoom on focus */
 }
-#mbar { display:none; position:fixed; bottom:0; left:0; right:0; background:var(--bg2); border-top:1px solid var(--border); padding:5px 8px; gap:6px; z-index:400; justify-content:space-around; }
-#mbar button { background:none; border:1px solid var(--border); color:var(--dim); font-family:inherit; font-size:10px; padding:4px 8px; cursor:pointer; flex:1; text-align:center; }
-#mbar button:hover { color:var(--white); }
+#mbar { display:none; position:fixed; bottom:0; left:0; right:0; background:rgba(10,10,10,0.98); border-top:1px solid var(--border-hi); padding:7px 8px calc(7px + env(safe-area-inset-bottom, 0px)); gap:6px; z-index:800; justify-content:space-around; }
+#mbar button { background:var(--bg3); border:1px solid var(--border-hi); color:var(--white); font-family:inherit; font-size:11px; padding:7px 8px; cursor:pointer; flex:1; text-align:center; letter-spacing:0.5px; }
+#mbar button:hover { color:var(--white); border-color:var(--accent); }
 
 /* KANBAN BOARD */
 #kanban-board { display:flex; gap:10px; padding:14px 18px; overflow-x:auto; flex:1; align-items:flex-start; }
